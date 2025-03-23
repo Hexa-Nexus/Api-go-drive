@@ -1,0 +1,21 @@
+{
+  "name": "apigodrive",
+  "version": "1.0.0",
+  "description": "seria um api de serviços de aluguel de veiculos",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon src/app.js",
+    "migrate": "npx prisma migrate dev --schema ./src/prisma/schema.prisma"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0"
+  }
+}
