@@ -1,0 +1,79 @@
+services:
+  mysql:
+        image: mysql:8.0
+        container_name: apigodrive
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        env_file:
+            - .env
+        ports:
+            - "3306:3306"
+        volumes:
+            - mysql_data:/var/lib/mysql
+        command: --default-authentication-plugin=mysql_native_password --innodb-flush-log-at-trx-commit=0
+        networks:
+            - apigodrive-network
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "mysqladmin",
+                    "ping",
+                    "-h",
+                    "localhost",
+                    "-u",
+                    "root",
+                    "-p$$MYSQL_ROOT_PASSWORD",
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 20
+  phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: apigodrive-phpmyadmin
+        restart: always
+        environment:
+            PMA_HOST: ${PMA_HOST}
+            PMA_PORT: ${PMA_PORT}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        ports:
+            - "8080:80"
+        depends_on:
+            mysql:
+                condition: service_healthy
+        networks:
+            - apigodrive-network
+  apigodrive:
+        build:
+            dockerfile: Dockerfile
+            context: ./backend
+        env_file:
+            - .env
+        container_name: apigodrive-backend
+        restart: always
+        environment:
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_USER: ${MYSQL_USER}
+            DB_PASSWORD: ${MYSQL_PASSWORD}
+            DB_NAME: ${MYSQL_DATABASE}
+        ports:
+            - "3000:3000"
+        depends_on:
+            mysql:
+                condition: service_healthy
+        networks:
+            - apigodrive-network
+        command: sh -c "npx prisma migrate dev --schema ./src/prisma/schema.prisma && node ./src/app.js"
+
+networks:
+    apigodrive-network:
+        driver: bridge
+
+volumes:
+    mysql_data:
+        name: apigodrive_mysql_data
