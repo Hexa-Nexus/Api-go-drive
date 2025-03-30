@@ -10,11 +10,12 @@ datasource db {
 model Gestor {
   id         String      @id @default(uuid())
   name       String
+  cpf        String      @unique
   email      String      @unique
   password   String
   motoristas Motorista[] // Um gestor pode gerenciar vários motoristas
-  carros     Carro[]     // Um gestor pode gerenciar vários carros
-  eventos    Evento[]    // O gestor pode registrar vários eventos
+  carros     Carro[] // Um gestor pode gerenciar vários carros
+  eventos    Evento[] // O gestor pode registrar vários eventos
   pagamentos Pagamento[] // O gestor pode gerenciar pagamentos
   relatorios Relatorio[] // O gestor pode gerar relatórios
   createdAt  DateTime    @default(now())
@@ -22,67 +23,111 @@ model Gestor {
 }
 
 model Motorista {
-  id        String   @id @default(uuid())
-  name      String
-  telefone  String?
-  gestor    Gestor   @relation(fields: [gestorId], references: [id])
-  gestorId  String
-  carros    Carro[]  // Um motorista pode ter vários carros
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-
-model Carro {
-  id            String   @id @default(uuid())
-  modelo        String
-  placa         String   @unique
-  odometroAtual Int
-  disponivel    Boolean  @default(true)
-  gestor        Gestor   @relation(fields: [gestorId], references: [id])
-  gestorId      String
-  motorista     Motorista? @relation(fields: [motoristaId], references: [id])
-  motoristaId   String?
-  eventos       Evento[]  // Adicionando relação com Evento
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-
-model Evento {
-  id         String   @id @default(uuid())
-  tipoEvento String
-  dataHora   DateTime
-  odometro   Int
-  valor      Float
-  statusPagamento String
-  carro      Carro    @relation(fields: [carroId], references: [id])
-  carroId    String
-  gestor     Gestor   @relation(fields: [gestorId], references: [id])
-  gestorId   String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model Relatorio {
   id          String   @id @default(uuid())
-  tipo        String
-  dataInicio  DateTime
-  dataFim     DateTime
+  name        String
+  telefone    String?
+  cpf         String   @default("@unique")
+  habilitacao String   @default("@unique")
+  disponivel  Boolean  @default(true) // Se o motorista está disponível ou não
   gestor      Gestor   @relation(fields: [gestorId], references: [id])
   gestorId    String
+  eventos     Evento[] // Um motorista pode estar associado a vários eventos
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model Pagamento {
-  id              String   @id @default(uuid())
-  valor           Float
-  data            DateTime
-  metodoPagamento String
-  status          String
-  gestor          Gestor   @relation(fields: [gestorId], references: [id])
+model Carro {
+  id            String      @id @default(uuid())
+  modelo        String
+  marca         String
+  ano           Int
+  cor           String
+  placa         String      @default("@unique")
+  odometroAtual Int
+  disponivel    Boolean     @default(true)
+  gestor        Gestor      @relation(fields: [gestorId], references: [id])
+  gestorId      String
+  eventos       Evento[]
+  relatorios    Relatorio[] @relation("CarroRelatorios") // Relacionamento com Relatorio
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Evento {
+  id              String       @id @default(uuid())
+  tipoEvento      TipoEvento
+  status          StatusEvento
+  dataSaida       DateTime     @default(now())
+  dataEntrada     DateTime?
+  odometroInicial Int
+  odometroFinal   Int? // 100 voyage
+  pagamentos      Pagamento[]
+  carro           Carro        @relation(fields: [carroId], references: [id])
+  carroId         String
+  gestor          Gestor       @relation(fields: [gestorId], references: [id])
   gestorId        String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  motorista       Motorista    @relation(fields: [motoristaId], references: [id])
+  motoristaId     String
+  relatorio       Relatorio?   @relation(fields: [relatorioId], references: [id])
+  relatorioId     String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model Relatorio {
+  id         String        @id @default(uuid())
+  data       DateTime      @default(now())
+  tipo       RelatorioTipo
+  carros     Carro[]       @relation("CarroRelatorios") // Pode conter vários carros
+  eventos    Evento[] // Pode conter vários eventos
+  pagamentos Pagamento[] // Pode conter vários pagamentos
+  gestor     Gestor        @relation(fields: [gestorId], references: [id], onDelete: Cascade)
+  gestorId   String
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model Pagamento {
+  id              String          @id @default(uuid())
+  valor           Float // 3000.00
+  data            DateTime
+  metodoPagamento MetodoPagamento @default(Pagamento_Indefinido)
+  statusPagamento StatusPagamento @default(PENDENTE)
+  gestor          Gestor          @relation(fields: [gestorId], references: [id])
+  gestorId        String
+  evento          Evento          @relation(fields: [eventoId], references: [id])
+  eventoId        String
+  relatorio       Relatorio?      @relation(fields: [relatorioId], references: [id])
+  relatorioId     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+enum TipoEvento {
+  SAIDA
+  ENTRADA
+}
+
+enum StatusEvento {
+  PENDENTE
+  CONCLUIDO
+  CANCELADO
+}
+
+enum StatusPagamento {
+  PENDENTE
+  PAGO
+  CANCELADO
+}
+
+enum MetodoPagamento {
+  Pagamento_Indefinido
+  CARTAO
+  PIX
+  DINHEIRO
+  BOLETO
+}
+
+enum RelatorioTipo {
+  FINANCEIRO
 }
