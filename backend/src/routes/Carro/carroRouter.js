@@ -1,7 +1,9 @@
 const express = require("express");
-const CarroController = require("../../controllers/Carro/carroController");
 const router = express.Router();
+const CarroController = require("../../controllers/Carro/carroController");
 
-//definições de rotas para carro
+// Definições de rotas para carro
 router.post("/carros", CarroController.criandoCarro);
+router.get("/carros", CarroController.obter_todos_carros);
+
 module.exports = router;
