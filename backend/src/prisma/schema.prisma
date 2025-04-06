@@ -24,10 +24,10 @@ model Gestor {
 
 model Motorista {
   id          String   @id @default(uuid())
-  name        String
+  nome        String
   telefone    String?
-  cpf         String   @default("@unique")
-  habilitacao String   @default("@unique")
+  cpf         String   @unique
+  habilitacao String   @unique
   disponivel  Boolean  @default(true) // Se o motorista está disponível ou não
   gestor      Gestor   @relation(fields: [gestorId], references: [id])
   gestorId    String
