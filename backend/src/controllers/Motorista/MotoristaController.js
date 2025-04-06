@@ -95,6 +95,86 @@ class MotoristaController {
     }
   }
 
+  // obter motorista por id
+  static async obter_motorista_por_id(req, res) {
+    const { id } = req.params;
+
+    try {
+      const motorista = await prisma.motorista.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          nome: true,
+          telefone: true,
+          cpf: true,
+          habilitacao: true,
+          disponivel: true,
+          gestorId: true,
+        },
+      });
+
+      if (!motorista) {
+        return res.status(404).json({ error: "Motorista não encontrado" });
+      }
+
+      return res.status(200).json(motorista);
+    } catch (error) {
+      console.error("Erro ao obter o motorista:", error); // Log para ver o erro exato
+      return res.status(500).json({ error: "Erro ao obter o motorista" });
+    }
+  }
+
+  // Atualizar motorista
+  static async atualizar_motorista(req, res) {
+    const { id } = req.params;
+    const { nome, telefone, habilitacao, disponivel } = req.body;
+
+    try {
+      // Verificar se o motorista existe
+      const motorista = await prisma.motorista.findUnique({
+        where: { id },
+      });
+
+      if (!motorista) {
+        return res.status(404).json({ error: "Motorista não encontrado" });
+      }
+
+      // Validar telefone, se enviado
+      if (telefone && !validarTelefone(telefone)) {
+        return res.status(400).json({ error: "Telefone inválido." });
+      }
+
+      // Validar habilitação, se enviada
+      if (habilitacao && !validarHabilitacao(habilitacao)) {
+        return res
+          .status(400)
+          .json({ error: "Número de habilitação inválido." });
+      }
+
+      // Criar objeto com os campos a serem atualizados
+      const dadosAtualizados = {};
+
+      if (nome !== undefined) dadosAtualizados.nome = nome;
+      if (telefone !== undefined) dadosAtualizados.telefone = telefone;
+      if (habilitacao !== undefined) dadosAtualizados.habilitacao = habilitacao;
+      if (disponivel !== undefined) dadosAtualizados.disponivel = disponivel;
+
+      // Atualizar motorista
+      const motoristaAtualizado = await prisma.motorista.update({
+        where: { id },
+        data: dadosAtualizados,
+      });
+
+      return res.status(200).json({
+        motorista: motoristaAtualizado,
+        mensagem: "Motorista atualizado com sucesso",
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar motorista:", error);
+      return res.status(500).json({ error: "Erro ao atualizar motorista" });
+    }
+  }
+
   // Obter um motorista por CPF
   static async obter_motorista_por_cpf(req, res) {
     const { cpf } = req.body;
@@ -108,13 +188,13 @@ class MotoristaController {
       const motorista = await prisma.motorista.findUnique({
         where: { cpf },
         select: {
-          id:true,
+          id: true,
           nome: true,
           telefone: true,
           cpf: true,
           habilitacao: true,
           disponivel: true,
-          gestorId: true
+          gestorId: true,
         },
       });
 
