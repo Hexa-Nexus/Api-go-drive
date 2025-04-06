@@ -54,6 +54,21 @@ class CarroController {
         .json({ error: "Erro ao criar o Carro!", details: error.message });
     }
   }
+
+// Obter todos os carros
+static async obter_todos_carros(req, res) {
+  try {
+    const carros = await prisma.carro.findMany({
+      include: {
+        eventos: true
+      }
+  });
+    return res.status(200).json(carros);
+  } catch (error) {
+    console.error("Erro ao obter os carros:", error);
+    return res.status(500).json({ error: "Erro ao obter os carros" });
+  }
 }
 
+}
 module.exports = CarroController;
