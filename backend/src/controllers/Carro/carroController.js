@@ -70,5 +70,45 @@ static async obter_todos_carros(req, res) {
   }
 }
 
+// Update no carro
+static async atualizar_carro(req, res) {
+  const { modelo, marca, ano, cor, placa, disponivel, odometroAtual } = req.body;
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "carroId é obrigatório" });
+  }
+
+  try {
+    // Verificar se o carro existe
+    const carroExistente = await prisma.carro.findUnique({
+      where: { id: id },
+    });
+
+    if (!carroExistente) {
+      return res.status(404).json({ error: "Carro não encontrado" });
+    }
+
+    // Atualizar os dados do carro
+    const carroAtualizado = await prisma.carro.update({
+      where: { id: id },
+      data: {
+        modelo,
+        marca,
+        ano,
+        cor,
+        placa,
+        disponivel,
+        odometroAtual,
+      },
+    });
+
+    return res.status(200).json(carroAtualizado);
+  } catch (error) {
+    console.error("Erro ao atualizar o carro:", error);
+    return res.status(500).json({ error: "Erro ao atualizar o carro" });
+  }
+}
+
 }
 module.exports = CarroController;
