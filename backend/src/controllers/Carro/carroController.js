@@ -110,5 +110,38 @@ static async atualizar_carro(req, res) {
   }
 }
 
+
+  // Deletar o carro
+  static async deletar_carro(req, res) {
+    const { id } = req.params;
+
+    try {
+      // Verificar se o carro existe no banco de dados
+      const carro = await prisma.carro.findUnique({
+        where: { id },
+      });
+
+      if (!carro) {
+        return res.status(404).json({ error: "carro não encontrado" });
+      }
+
+      // Deletar o carro do banco de dados
+      await prisma.carro.delete({
+        where: { id },
+      });
+
+      // Retornar sucesso após deleção
+      return res
+        .status(200)
+        .json({ message: "carro deletado com sucesso" });
+    } catch (error) {
+      console.error("Erro ao deletar carro: ", error);
+      return res.status(500).json({
+        error: "Erro ao deletar carro",
+        details: error.message,
+      });
+    }
+  }
+
 }
 module.exports = CarroController;
