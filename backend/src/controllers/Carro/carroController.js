@@ -70,6 +70,36 @@ static async obter_todos_carros(req, res) {
   }
 }
 
+  // obter carro por id
+  static async obter_carro_por_id(req, res) {
+    const { id } = req.params;
+
+    try {
+      const carro = await prisma.carro.findUnique({
+        where: { id },
+        select: {
+          modelo: true,
+          marca: true,
+          ano: true,
+          cor: true,
+          placa: true,
+          disponivel: true,
+          odometroAtual: true
+        },
+      });
+
+      if (!carro) {
+        return res.status(404).json({ error: "carro não encontrado" });
+      }
+
+      return res.status(200).json(carro);
+    } catch (error) {
+      console.error("Erro ao obter o carro:", error); // Log para ver o erro exato
+      return res.status(500).json({ error: "Erro ao obter o carro" });
+    }
+  }
+
+
 // Update no carro
 static async atualizar_carro(req, res) {
   const { modelo, marca, ano, cor, placa, disponivel, odometroAtual } = req.body;
@@ -109,6 +139,39 @@ static async atualizar_carro(req, res) {
     return res.status(500).json({ error: "Erro ao atualizar o carro" });
   }
 }
+
+
+  // Deletar o carro
+  static async deletar_carro(req, res) {
+    const { id } = req.params;
+
+    try {
+      // Verificar se o carro existe no banco de dados
+      const carro = await prisma.carro.findUnique({
+        where: { id },
+      });
+
+      if (!carro) {
+        return res.status(404).json({ error: "carro não encontrado" });
+      }
+
+      // Deletar o carro do banco de dados
+      await prisma.carro.delete({
+        where: { id },
+      });
+
+      // Retornar sucesso após deleção
+      return res
+        .status(200)
+        .json({ message: "carro deletado com sucesso" });
+    } catch (error) {
+      console.error("Erro ao deletar carro: ", error);
+      return res.status(500).json({
+        error: "Erro ao deletar carro",
+        details: error.message,
+      });
+    }
+  }
 
 }
 module.exports = CarroController;
