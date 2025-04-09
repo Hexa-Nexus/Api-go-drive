@@ -1,4 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient, TipoEvento, StatusEvento, StatusPagamento, MetodoPagamento, RelatorioTipo } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 class EventoController {
@@ -12,11 +12,10 @@ class EventoController {
       gestorId,
       motoristId,
       relatorioId,
-      metodoPagamento, // Novo campo que será utilizado na segunda etapa
+      metodoPagamento,
     } = req.body;
 
     try {
-      // Verificar se o carro existe e está disponível
       const carro = await prisma.carro.findUnique({
         where: { id: carroId },
       });
@@ -29,7 +28,6 @@ class EventoController {
         return res.status(400).json({ error: "Carro já está alugado" });
       }
 
-      // Verificar se o motorista existe e está disponível
       const motorista = await prisma.motorista.findUnique({
         where: { id: motoristId },
       });
@@ -44,7 +42,6 @@ class EventoController {
           .json({ error: "Motorista já está alugando um carro" });
       }
 
-      // Verificar se o gestor existe
       const gestor = await prisma.gestor.findUnique({
         where: { id: gestorId },
       });
@@ -53,14 +50,13 @@ class EventoController {
         return res.status(400).json({ error: "Gestor não encontrado" });
       }
 
-      // Criar o novo evento com status "PENDENTE" (ainda não finalizado)
       const novoEvento = await prisma.evento.create({
         data: {
-          tipoEvento,
-          status: "PENDENTE", // Inicialmente o evento está pendente // dados mocados
+          tipoEvento: TipoEvento.SAIDA, // Substituindo por um valor do enum
+          status: StatusEvento.PENDENTE, // Substituindo por um valor do enum
           dataSaida: new Date(),
           odometroInicial: carro.odometroAtual,
-          odometroFinal: null, // Será atualizado mais tarde
+          odometroFinal: null,
           carro: { connect: { id: carroId } },
           gestor: { connect: { id: gestorId } },
           motorista: { connect: { id: motoristId } },
@@ -70,7 +66,6 @@ class EventoController {
         },
       });
 
-      // Atualizar o carro e motorista para "disponível = false"
       await prisma.carro.update({
         where: { id: carroId },
         data: { disponivel: false },
@@ -118,7 +113,6 @@ class EventoController {
     const { eventoId, metodoPagamento, odometroFinal } = req.body;
 
     try {
-      // Verificar se o evento existe
       const evento = await prisma.evento.findUnique({
         where: { id: eventoId },
         include: {
@@ -132,7 +126,7 @@ class EventoController {
         return res.status(400).json({ error: "Evento não encontrado" });
       }
 
-      if (evento.status !== "PENDENTE") { // dados mocados
+      if (evento.status !== StatusEvento.PENDENTE) {
         return res
           .status(400)
           .json({ error: "Evento não está em status PENDENTE" });
@@ -142,59 +136,52 @@ class EventoController {
         return res.status(400).json({ error: "Odômetro final inválido" });
       }
 
-      // Calcular a distância percorrida e o valor do pagamento
       const distanciaPercorrida = odometroFinal - evento.odometroInicial;
-      const valorPagamento = distanciaPercorrida * 2; // Exemplo de cálculo (valor por quilômetro)
+      const valorPagamento = distanciaPercorrida * 2;
 
-      // Criar o pagamento, associando-o ao evento
       const pagamento = await prisma.pagamento.create({
         data: {
           valor: valorPagamento,
-          metodoPagamento: metodoPagamento || "CARTAO" , // Caso o método não seja passado, assume 'CARTAO' // dados mocado
-          statusPagamento: "PENDENTE", // dados mocado
+          metodoPagamento: metodoPagamento || MetodoPagamento.CARTAO, // Usando o enum MetodoPagamento
+          statusPagamento: StatusPagamento.PENDENTE, // Usando o enum StatusPagamento
           gestor: { connect: { id: evento.gestorId } },
           evento: { connect: { id: evento.id } },
-          data: new Date(), // Data do pagamento, utilizando a data e hora atual
+          data: new Date(),
         },
       });
 
-      // Atualizar o evento com o odômetro final e alterar status para "CONCLUIDO"
       const eventoConcluido = await prisma.evento.update({
         where: { id: evento.id },
         data: {
-          status: "CONCLUIDO", // dados mocados
+          status: StatusEvento.CONCLUIDO, // Usando o enum StatusEvento
           odometroFinal,
           dataEntrada: new Date(),
           pagamentos: { connect: { id: pagamento.id } },
         },
       });
 
-      // Criar o relatório relacionado ao evento
       const relatorioCriado = await prisma.relatorio.create({
         data: {
-          tipo: "FINANCEIRO", // dados mocados
+          tipo: RelatorioTipo.FINANCEIRO, // Usando o enum RelatorioTipo
           gestor: { connect: { id: evento.gestorId } },
           eventos: { connect: { id: eventoConcluido.id } },
           pagamentos: { connect: { id: pagamento.id } },
         },
       });
 
-      // Atualizar o pagamento para "PAGO"
       await prisma.pagamento.update({
         where: { id: pagamento.id },
         data: {
-          statusPagamento: "PAGO", // dados mocados
+          statusPagamento: StatusPagamento.PAGO, // Usando o enum StatusPagamento
           relatorio: { connect: { id: relatorioCriado.id } },
         },
       });
 
-      // Atualizar o carro para "disponível = true"
       await prisma.carro.update({
         where: { id: evento.carroId },
         data: { disponivel: true, odometroAtual: odometroFinal },
       });
 
-      // Atualizar o motorista para "disponível = true"
       await prisma.motorista.update({
         where: { id: evento.motoristaId },
         data: { disponivel: true },
