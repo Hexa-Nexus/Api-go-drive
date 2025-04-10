@@ -55,20 +55,20 @@ class CarroController {
     }
   }
 
-// Obter todos os carros
-static async obter_todos_carros(req, res) {
-  try {
-    const carros = await prisma.carro.findMany({
-      include: {
-        eventos: true
-      }
-  });
-    return res.status(200).json(carros);
-  } catch (error) {
-    console.error("Erro ao obter os carros:", error);
-    return res.status(500).json({ error: "Erro ao obter os carros" });
+  // Obter todos os carros
+  static async obter_todos_carros(req, res) {
+    try {
+      const carros = await prisma.carro.findMany({
+        include: {
+          eventos: true,
+        },
+      });
+      return res.status(200).json(carros);
+    } catch (error) {
+      console.error("Erro ao obter os carros:", error);
+      return res.status(500).json({ error: "Erro ao obter os carros" });
+    }
   }
-}
 
   // obter carro por id
   static async obter_carro_por_id(req, res) {
@@ -84,7 +84,7 @@ static async obter_todos_carros(req, res) {
           cor: true,
           placa: true,
           disponivel: true,
-          odometroAtual: true
+          odometroAtual: true,
         },
       });
 
@@ -124,46 +124,77 @@ static async obter_todos_carros(req, res) {
     }
   }
 
-// Update no carro
-static async atualizar_carro(req, res) {
-  const { modelo, marca, ano, cor, placa, disponivel, odometroAtual } = req.body;
-  const { id } = req.params;
+  // Obter carro por placa
+  static async buscar_por_placa(req, res) {
+    const { placa } = req.params;
+    try {
+      const carros = await prisma.carro.findMany({
+        where: {
+          placa: {
+            contains: placa, // ou equals: placa (se quiser exato)
+          },
+        },
+        include: { eventos: true },
+      });
 
-  if (!id) {
-    return res.status(400).json({ error: "carroId é obrigatório" });
+      // Normaliza para comparar ignorando maiúsculas/minúsculas
+      const carro = carros.find(
+        (c) => c.placa.toLowerCase() === placa.toLowerCase()
+      );
+
+      if (!carro) {
+        return res
+          .status(404)
+          .json({ error: "Carro não encontrado pela placa" });
+      }
+
+      return res.status(200).json(carro);
+    } catch (error) {
+      console.error("Erro ao buscar carro por placa:", error);
+      return res.status(500).json({ error: "Erro ao buscar carro por placa" });
+    }
   }
 
-  try {
-    // Verificar se o carro existe
-    const carroExistente = await prisma.carro.findUnique({
-      where: { id: id },
-    });
+  // Update no carro
+  static async atualizar_carro(req, res) {
+    const { modelo, marca, ano, cor, placa, disponivel, odometroAtual } =
+      req.body;
+    const { id } = req.params;
 
-    if (!carroExistente) {
-      return res.status(404).json({ error: "Carro não encontrado" });
+    if (!id) {
+      return res.status(400).json({ error: "carroId é obrigatório" });
     }
 
-    // Atualizar os dados do carro
-    const carroAtualizado = await prisma.carro.update({
-      where: { id: id },
-      data: {
-        modelo,
-        marca,
-        ano,
-        cor,
-        placa,
-        disponivel,
-        odometroAtual,
-      },
-    });
+    try {
+      // Verificar se o carro existe
+      const carroExistente = await prisma.carro.findUnique({
+        where: { id: id },
+      });
 
-    return res.status(200).json(carroAtualizado);
-  } catch (error) {
-    console.error("Erro ao atualizar o carro:", error);
-    return res.status(500).json({ error: "Erro ao atualizar o carro" });
+      if (!carroExistente) {
+        return res.status(404).json({ error: "Carro não encontrado" });
+      }
+
+      // Atualizar os dados do carro
+      const carroAtualizado = await prisma.carro.update({
+        where: { id: id },
+        data: {
+          modelo,
+          marca,
+          ano,
+          cor,
+          placa,
+          disponivel,
+          odometroAtual,
+        },
+      });
+
+      return res.status(200).json(carroAtualizado);
+    } catch (error) {
+      console.error("Erro ao atualizar o carro:", error);
+      return res.status(500).json({ error: "Erro ao atualizar o carro" });
+    }
   }
-}
-
 
   // Deletar o carro
   static async deletar_carro(req, res) {
@@ -185,9 +216,7 @@ static async atualizar_carro(req, res) {
       });
 
       // Retornar sucesso após deleção
-      return res
-        .status(200)
-        .json({ message: "carro deletado com sucesso" });
+      return res.status(200).json({ message: "carro deletado com sucesso" });
     } catch (error) {
       console.error("Erro ao deletar carro: ", error);
       return res.status(500).json({
@@ -196,6 +225,5 @@ static async atualizar_carro(req, res) {
       });
     }
   }
-
 }
 module.exports = CarroController;
