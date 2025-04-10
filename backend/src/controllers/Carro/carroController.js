@@ -99,6 +99,30 @@ static async obter_todos_carros(req, res) {
     }
   }
 
+  //  Buscar carro por modelo
+  static async buscar_por_modelo(req, res) {
+    const { modelo } = req.params;
+    try {
+      const carros = await prisma.carro.findMany({
+        where: {
+          modelo: {
+            contains: modelo,
+          },
+        },
+        include: { eventos: true },
+      });
+
+      if (carros.length === 0) {
+        return res
+          .status(404)
+          .json({ error: "Nenhum carro encontrado com esse modelo" });
+      }
+      return res.status(200).json(carros);
+    } catch (error) {
+      console.error("Erro ao buscar carro por modelo:", error);
+      return res.status(500).json({ error: "Erro ao buscar carro por modelo" });
+    }
+  }
 
 // Update no carro
 static async atualizar_carro(req, res) {
