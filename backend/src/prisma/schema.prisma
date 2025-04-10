@@ -42,7 +42,7 @@ model Carro {
   marca         String
   ano           Int
   cor           String
-  placa         String      @default("@unique")
+  placa         String      @unique
   odometroAtual Int
   disponivel    Boolean     @default(true)
   gestor        Gestor      @relation(fields: [gestorId], references: [id])

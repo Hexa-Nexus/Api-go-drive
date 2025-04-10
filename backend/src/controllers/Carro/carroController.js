@@ -31,7 +31,7 @@ class CarroController {
       });
 
       if (carro) {
-        return res.status(400).json({ error: "Veículo já cadastrado!" });
+        return res.status(400).json({ error: "Essa placa já está em uso!" });
       }
 
       const novoCarro = await prisma.carro.create({
@@ -173,6 +173,15 @@ class CarroController {
 
       if (!carroExistente) {
         return res.status(404).json({ error: "Carro não encontrado" });
+      }
+
+      // Buscando o carro pela placa (use findFirst para campos não únicos)
+      const carro = await prisma.carro.findFirst({
+        where: { placa: placa }, // Busca o carro pela placa
+      });
+
+      if (carro) {
+        return res.status(400).json({ error: "Essa placa já está em uso!" });
       }
 
       // Atualizar os dados do carro
