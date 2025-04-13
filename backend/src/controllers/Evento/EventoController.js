@@ -153,6 +153,7 @@ class EventoController {
       const eventoConcluido = await prisma.evento.update({
         where: { id: evento.id },
         data: {
+          tipoEvento: TipoEvento.ENTRADA,
           status: StatusEvento.CONCLUIDO, // Usando o enum StatusEvento
           odometroFinal,
           dataEntrada: new Date(),
