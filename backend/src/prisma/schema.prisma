@@ -9,6 +9,7 @@ datasource db {
 
 model Gestor {
   id         String      @id @default(uuid())
+  admin      Boolean     @default(false)
   name       String
   cpf        String      @unique
   email      String      @unique

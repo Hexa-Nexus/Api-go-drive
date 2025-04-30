@@ -1,11 +1,13 @@
-const express = require('express');
-const GestorController = require ('../../controllers/Gestor/GestorController')
+const express = require("express");
+const GestorController = require("../../controllers/Gestor/GestorController");
 const router = express.Router();
+const verificarJWT = require("../../middlewares/auth");
 
-router.post('/gestor', GestorController.criandoGestor);
-router.get('/gestores', GestorController.buscarGestores);
-router.get('/gestor/:id', GestorController.buscarGestorId);
-router.put('/gestor/:id', GestorController.editarGestor);
-router.delete('/gestor/:id', GestorController.deletarGestor);
+router.post("/login", GestorController.loginGestor);
+router.post("/gestor", GestorController.criandoGestor);
+router.get("/gestores", verificarJWT, GestorController.buscarGestores);
+router.get("/gestor/:id", verificarJWT, GestorController.buscarGestorId);
+router.put("/gestor/:id", verificarJWT, GestorController.editarGestor);
+router.delete("/gestor/:id", verificarJWT, GestorController.deletarGestor);
 
 module.exports = router;
