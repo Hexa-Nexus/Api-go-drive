@@ -2,7 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const bcrypt = require("bcrypt");
 const { validarCPF, validarEmail } = require("./validadorGestor");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 class GestorController {
   // criando um novo gestor
@@ -82,13 +82,17 @@ class GestorController {
       // Gera um token JWT
       const token = jwt.sign(
         { id: gestor.id, email: gestor.email },
-        process.env.JWT_SECRET || "secreta", // Use uma variável de ambiente para o segredo
+        process.env.JWT_SECRET || "secreta",
         { expiresIn: "12h" }
       );
 
-      return res
-        .status(200)
-        .json({ message: "Login realizado com sucesso!", token });
+      // Retorne também o id e o nome do gestor
+      return res.status(200).json({
+        message: "Login realizado com sucesso!",
+        token,
+        id: gestor.id,
+        name: gestor.name, // ou gestor.nome se o campo for nome
+      });
     } catch (error) {
       console.error("Erro ao realizar login!", error);
       return res
@@ -106,12 +110,10 @@ class GestorController {
     } catch (error) {
       console.error("Erro ao buscar Getores!", error);
 
-      return res
-        .status(500)
-        .json({
-          error: "Erro ao buscar os gestores! ",
-          details: error.message,
-        });
+      return res.status(500).json({
+        error: "Erro ao buscar os gestores! ",
+        details: error.message,
+      });
     }
   }
 
