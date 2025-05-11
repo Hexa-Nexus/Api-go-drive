@@ -141,6 +141,34 @@ class GestorController {
     }
   }
 
+  // Buscar gestor por CPF
+  static async buscarGestorPorCPF(req, res) {
+    const { cpf } = req.params;
+
+    try {
+      const gestor = await prisma.gestor.findUnique({
+        where: { cpf },
+      });
+
+      if (!gestor) {
+        return res
+          .status(404)
+          .json({ error: "Gestor com CPF não encontrado!" });
+      }
+
+      return res.status(200).json(gestor);
+    } catch (error) {
+      console.error("Erro ao buscar gestor por CPF!", error);
+
+      return res
+        .status(500)
+        .json({
+          error: "Erro ao buscar gestor por CPF!",
+          details: error.message,
+        });
+    }
+  }
+
   // editar gestor
   static async editarGestor(req, res) {
     const { id } = req.params;
