@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go Drive - Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="../../static/css/dashboard/styleUniversal.css"
+    />
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <div class="row g-0">
+        <!-- Sidebar -->
+        <div class="col-lg-2 col-md-3 sidebar">
+          <div
+            class="logo-container d-flex align-items-center justify-content-center mb-4"
+          >
+            <span><i class="fas fa-car-side me-2"></i> Go Drive</span>
+          </div>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                href="../dashboard/PainelDashboard.html"
+              >
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../carro/PainelCarro.html">
+                <i class="fas fa-car"></i> Carros
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../motorista/PainelMotorista.html">
+                <i class="fas fa-id-card"></i> Motoristas
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../evento/PainelEvento.html">
+                <i class="fas fa-calendar-alt"></i> Eventos
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../pagamento/PainelPagamento.html">
+                <i class="fas fa-money-bill-wave"></i> Pagamentos
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../gestor/PainelGestor.html">
+                <i class="fas fa-users-cog"></i> Gestores
+              </a>
+            </li>
+            <li class="nav-item mt-5">
+              <a
+                class="nav-link text-danger"
+                href="javascript:void(0)"
+                id="btn-logout"
+              >
+                <i class="fas fa-sign-out-alt"></i> Sair
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-10 col-md-9">
+          <div class="dashboard-header py-3 px-4 border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+              <h3 class="mb-0">Dashboard de Gerenciamento</h3>
+              <div class="dropdown">
+                <button
+                  class="btn btn-outline-secondary dropdown-toggle"
+                  type="button"
+                  id="userDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="fas fa-user-circle me-1"></i>
+                  <span id="user-name">Nome do Gestor</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="#"
+                      ><i class="fas fa-user me-1"></i> Perfil</a
+                    >
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#"
+                      ><i class="fas fa-cog me-1"></i> Configurações</a
+                    >
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <a
+                      class="dropdown-item text-danger"
+                      href="#"
+                      id="dropdown-logout"
+                      ><i class="fas fa-sign-out-alt me-1"></i> Sair</a
+                    >
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="container-fluid py-4">
+            <!-- Cards -->
+            <div class="row">
+              <div class="col-md-3 mb-4">
+                <div class="card border-start border-primary">
+                  <div class="card-body">
+                    <i class="fas fa-car fa-2x text-primary"></i>
+                    <p class="mt-2 mb-0">Carros</p>
+                    <h5 id="total-carros">0</h5>
+                    <small
+                      ><span id="carros-disponiveis-count">0</span>
+                      disponíveis</small
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-4">
+                <div class="card border-start border-success">
+                  <div class="card-body">
+                    <i class="fas fa-id-card fa-2x text-success"></i>
+                    <p class="mt-2 mb-0">Motoristas</p>
+                    <h5 id="total-motoristas">0</h5>
+                    <small
+                      ><span id="motoristas-disponiveis-count">0</span>
+                      disponíveis</small
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-4">
+                <div class="card border-start border-info">
+                  <div class="card-body">
+                    <i class="fas fa-calendar fa-2x text-info"></i>
+                    <p class="mt-2 mb-0">Eventos Ativos</p>
+                    <h5 id="eventos-ativos">0</h5>
+                    <small>Pendentes de conclusão</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-4">
+                <div class="card border-start border-warning">
+                  <div class="card-body">
+                    <i class="fas fa-money-bill-wave fa-2x text-warning"></i>
+                    <p class="mt-2 mb-0">Pagamentos Pendentes</p>
+                    <h5 id="pagamentos-pendentes">0</h5>
+                    <small
+                      >Valor total: R$
+                      <span id="valor-pagamentos">0,00</span></small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Últimos Eventos -->
+            <div class="row">
+              <div class="col-lg-8 mb-4">
+                <div class="card">
+                  <div class="card-header">Últimos Eventos</div>
+                  <div class="card-body">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Carro</th>
+                          <th>Motorista</th>
+                          <th>Data</th>
+                          <th>Status</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody id="ultimos-eventos">
+                        <tr>
+                          <td colspan="6" class="text-center">Carregando...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4 mb-4">
+                <div class="card">
+                  <div class="card-header">Calendário de Eventos</div>
+                  <div class="card-body">
+                    <div id="calendar">[Calendário]</div>
+                    <small class="text-muted d-block text-center"
+                      >Clique em uma data para ver os eventos</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Listas Disponíveis -->
+            <div class="row">
+              <div class="col-lg-6 mb-4">
+                <div class="card">
+                  <div class="card-header">Carros Disponíveis</div>
+                  <div class="card-body">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Placa</th>
+                          <th>Modelo</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="carros-disponiveis-list">
+                        <tr>
+                          <td colspan="3">Carregando...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-6 mb-4">
+                <div class="card">
+                  <div class="card-header">Motoristas Disponíveis</div>
+                  <div class="card-body">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>Documento</th>
+                        </tr>
+                      </thead>
+                      <tbody id="motoristas-disponiveis-list">
+                        <tr>
+                          <td colspan="2">Carregando...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /Main content -->
+      </div>
+    </div>
+
+    <!-- Roda pé -->
+    <footer>
+      <div class="container">
+        <small>&copy; 2025 Go Drive. Todos os direitos reservados.</small>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

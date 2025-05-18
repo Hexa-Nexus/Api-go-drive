@@ -1,7 +1,7 @@
 const API_BASE_URL = "http://localhost:3000/api";
 
 export async function loginGestor(email, password) {
-  const response = await fetch("http://localhost:3000/api/login", {
+  const response = await fetch(`${API_BASE_URL}/login`, { // Corrigido o endpoint para "/login"
     method: "POST",
     headers: {
       "Content-Type": "application/json",

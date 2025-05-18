@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Drive - Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../static/css/dashboard.css">
+    <style>
+        :root {
+            --primary-color: #85a9f8c2;
+            --secondary-color: #192343;
+            --light-bg:  #1c585532;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--secondary-color);
+        }
+
+        .sidebar .nav-link {
+            color: #f4f4f4d6;
+            border-radius: 0;
+            padding: 0.75rem 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .card-dashboard {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.55);
+            transition: transform 0.3s ease;
+        }
+
+        .card-dashboard:hover {
+            transform: translateY(-5px);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-disponivel {
+            background-color: #28a745;
+        }
+
+        .status-indisponivel {
+            background-color: #dc3545;
+        }
+
+        .logo-container img {
+            height: 40px;
+        }
+
+        .logo-container {
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .dashboard-header {
+            background-color: var(--light-bg);
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        .section-title {
+            border-left: 5px solid var(--primary-color);
+            padding-left: 10px;
+            margin-bottom: 20px;
+        }
+
+        .badge-custom-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .badge-custom-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .badge-custom-warning {
+            background-color: #0739ff;
+            color: black;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .btn-action {
+            margin-right: 5px;
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        #calendar {
+            height: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-lg-2 col-md-3 sidebar">
+                <div class="logo-container d-flex align-items-center justify-content-center mb-4">
+                    <span><i class="fas fa-car-side me-2"></i> Go Drive</span>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard-section" data-bs-toggle="tab">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#carros-section" data-bs-toggle="tab">
+                            <i class="fas fa-car"></i> Carros
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#motoristas-section" data-bs-toggle="tab">
+                            <i class="fas fa-id-card"></i> Motoristas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#eventos-section" data-bs-toggle="tab">
+                            <i class="fas fa-calendar-alt"></i> Eventos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#pagamentos-section" data-bs-toggle="tab">
+                            <i class="fas fa-money-bill-wave"></i> Pagamentos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#gestores-section" data-bs-toggle="tab">
+                            <i class="fas fa-users-cog"></i> Gestores
+                        </a>
+                    </li>
+                    <li class="nav-item mt-5">
+                        <a class="nav-link text-danger" href="javascript:void(0)" id="btn-logout">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 col-md-9 ms-auto">
+                <!-- Top Navigation -->
+                <div class="dashboard-header">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h3>Dashboard de Gerenciamento</h3>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-user-circle me-1"></i> <span id="user-name">Nome do
+                                            Gestor</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-1"></i>
+                                                Perfil</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-1"></i>
+                                                Configurações</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item text-danger" href="javascript:void(0)"
+                                                id="dropdown-logout"><i class="fas fa-sign-out-alt me-1"></i> Sair</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="container-fluid">
+                    <div class="tab-content">
+                        <!-- Dashboard Overview Section -->
+                        <div class="tab-pane fade show active" id="dashboard-section">
+                            <div class="row">
+                                <div class="col-12">
+                                    <h4 class="section-title">Visão Geral</h4>
+                                </div>
+                            </div>
+                            <!-- Cards de Resumo -->
+                            <div class="row mb-4">
+                                <!-- Card de Carros -->
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card card-dashboard border-left-primary">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <i class="fas fa-car card-icon"></i>
+                                                </div>
+                                                <div class="col ml-3">
+                                                    <div class="text-xs font-weight-bold text-uppercase mb-1">Carros
+                                                    </div>
+                                                    <div class="h5 mb-0 font-weight-bold" id="total-carros">0</div>
+                                                    <div class="small text-muted"><span id="carros-disponiveis">0</span>
+                                                        disponíveis</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card de Motoristas -->
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card card-dashboard border-left-success">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <i class="fas fa-id-card card-icon"></i>
+                                                </div>
+                                                <div class="col ml-3">
+                                                    <div class="text-xs font-weight-bold text-uppercase mb-1">Motoristas
+                                                    </div>
+                                                    <div class="h5 mb-0 font-weight-bold" id="total-motoristas">0</div>
+                                                    <div class="small text-muted"><span
+                                                            id="motoristas-disponiveis">0</span> disponíveis</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card de Eventos Ativos -->
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card card-dashboard border-left-info">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <i class="fas fa-calendar card-icon"></i>
+                                                </div>
+                                                <div class="col ml-3">
+                                                    <div class="text-xs font-weight-bold text-uppercase mb-1">Eventos
+                                                        Ativos</div>
+                                                    <div class="h5 mb-0 font-weight-bold" id="eventos-ativos">0</div>
+                                                    <div class="small text-muted">Pendentes de conclusão</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card de Pagamentos -->
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card card-dashboard border-left-warning">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <i class="fas fa-money-bill-wave card-icon"></i>
+                                                </div>
+                                                <div class="col ml-3">
+                                                    <div class="text-xs font-weight-bold text-uppercase mb-1">Pagamentos
+                                                        Pendentes</div>
+                                                    <div class="h5 mb-0 font-weight-bold" id="pagamentos-pendentes">0
+                                                    </div>
+                                                    <div class="small text-muted">Valor total: R$ <span
+                                                            id="valor-pagamentos">0,00</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Últimos Eventos e Gráfico -->
+                            <div class="row mb-4">
+                                <!-- Últimos Eventos -->
+                                <div class="col-lg-8 mb-4">
+                                    <div class="card card-dashboard">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0">Últimos Eventos</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>ID</th>
+                                                            <th>Carro</th>
+                                                            <th>Motorista</th>
+                                                            <th>Data</th>
+                                                            <th>Status</th>
+                                                            <th>Ações</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="ultimos-eventos">
+                                                        <tr>
+                                                            <td colspan="6" class="text-center">Carregando...</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Calendário -->
+                                <div class="col-lg-4 mb-4">
+                                    <div class="card card-dashboard h-100">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0">Calendário de Eventos</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="calendar" class="mb-3"></div>
+                                            <div class="small text-muted text-center">Clique em uma data para ver os
+                                                eventos</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Carros e Motoristas Disponíveis -->
+                            <div class="row">
+                                <div class="col-lg-6 mb-4">
+                                    <div class="card card-dashboard">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0">Carros Disponíveis</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Modelo</th>
+                                                            <th>Placa</th>
+                                                            <th>Odômetro</th>
+                                                            <th>Ações</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="carros-disponiveis-list">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center">Carregando...</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6 mb-4">
+                                    <div class="card card-dashboard">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0">Motoristas Disponíveis</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Nome</th>
+                                                            <th>Habilitação</th>
+                                                            <th>Telefone</th>
+                                                            <th>Ações</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="motoristas-disponiveis-list">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center">Carregando...</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carros Section -->
+                        <div class="tab-pane fade" id="carros-section">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h4 class="section-title">Gerenciamento de Carros</h4>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#modalAddCarro">
+                                        <i class="fas fa-plus me-1"></i> Adicionar Carro
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filtros -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <div class="card card-dashboard">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Buscar por modelo</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="busca-modelo"
+                                                            placeholder="Digite o modelo...">
+                                                        <button class="btn btn-outline-secondary" type="button"
+                                                            id="btn-buscar-modelo">Buscar</button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Buscar por placa</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="busca-placa"
+                                                            placeholder="Digite a placa...">
+                                                        <button class="btn btn-outline-secondary" type="button"
+                                                            id="btn-buscar-placa">Buscar</button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Filtrar por disponibilidade</label>
+                                                    <select class="form-select" id="filtro-disponibilidade">
+                                                        <option value="todos">Todos</option>
+                                                        <option value="disponivel">Disponíveis</option>
+                                                        <option value="indisponivel">Indisponíveis</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Carros -->
+                            <div class="card card-dashboard">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Modelo</th>
+                                                    <th>Marca</th>
+                                                    <th>Placa</th>
+                                                    <th>Ano</th>
+                                                    <th>Cor</th>
+                                                    <th>Odômetro</th>
+                                                    <th>Status</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="carros-lista">
+                                                <tr>
+                                                    <td colspan="9" class="text-center">Carregando...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Motoristas Section -->
+                        <div class="tab-pane fade" id="motoristas-section">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h4 class="section-title">Gerenciamento de Motoristas</h4>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#modalAddMotorista">
+                                        <i class="fas fa-plus me-1"></i> Adicionar Motorista
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filtros -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <div class="card card-dashboard">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label">Buscar por CPF</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="busca-cpf"
+                                                            placeholder="Digite o CPF...">
+                                                        <button class="btn btn-outline-secondary" type="button"
+                                                            id="btn-buscar-cpf">Buscar</button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label">Filtrar por disponibilidade</label>
+                                                    <select class="form-select" id="filtro-motorista-disponibilidade">
+                                                        <option value="todos">Todos</option>
+                                                        <option value="disponivel">Disponíveis</option>
+                                                        <option value="indisponivel">Indisponíveis</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Motoristas -->
+                            <div class="card card-dashboard">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Nome</th>
+                                                    <th>CPF</th>
+                                                    <th>Telefone</th>
+                                                    <th>Habilitação</th>
+                                                    <th>Status</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="motoristas-lista">
+                                                <tr>
+                                                    <td colspan="7" class="text-center">Carregando...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Eventos Section -->
+                        <div class="tab-pane fade" id="eventos-section">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h4 class="section-title">Gerenciamento de Eventos</h4>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#modalAddEvento">
+                                        <i class="fas fa-plus me-1"></i> Criar Novo Evento
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filtros -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <div class="card card-dashboard">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Filtrar por status</label>
+                                                    <select class="form-select" id="filtro-evento-status">
+                                                        <option value="todos">Todos</option>
+                                                        <option value="pendente">Pendentes</option>
+                                                        <option value="concluido">Concluídos</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Data inicial</label>
+                                                    <input type="date" class="form-control" id="filtro-data-inicial">
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Data final</label>
+                                                    <input type="date" class="form-control" id="filtro-data-final">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Eventos -->
+                            <div class="card card-dashboard">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Carro</th>
+                                                    <th>Motorista</th>
+                                                    <th>Data Saída</th>
+                                                    <th>Data Entrada</th>
+                                                    <th>Status</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="eventos-lista">
+                                                <tr>
+                                                    <td colspan="7" class="text-center">Carregando...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pagamentos Section -->
+                        <div class="tab-pane fade" id="pagamentos-section">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h4 class="section-title">Gerenciamento de Pagamentos</h4>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#modalAddPagamento">
+                                        <i class="fas fa-plus me-1"></i> Registrar Pagamento
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filtros -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <div class="card card-dashboard">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Filtrar por status</label>
+                                                    <select class="form-select" id="filtro-pagamento-status">
+                                                        <option value="todos">Todos</option>
+                                                        <option value="pendente">Pendentes</option>
+                                                        <option value="pago">Pagos</option>
+                                                        <option value="cancelado">Cancelados</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Filtrar por método</label>
+                                                    <select class="form-select" id="filtro-pagamento-metodo">
+                                                        <option value="todos">Todos</option>
+                                                        <option value="cartao">Cartão</option>
+                                                        <option value="dinheiro">Dinheiro</option>
+                                                        <option value="pix">PIX</option>
+                                                        <option value="boleto">Boleto</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="form-label">Data</label>
+                                                    <input type="date" class="form-control" id="filtro-pagamento-data">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Pagamentos -->
+                            <div class="card card-dashboard">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Evento</th>
+                                                    <th>Valor</th>
+                                                    <th>Data</th>
+                                                    <th>Método</th>
+                                                    <th>Status</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="pagamentos-lista">
+                                                <tr>
+                                                    <td colspan="7" class="text-center">Carregando...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gestores Section -->
+                        <div class="tab-pane fade" id="gestores-section">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h4 class="section-title">Gerenciamento de Gestores</h4>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#modalAddGestor">
+                                        <i class="fas fa-plus me-1"></i> Adicionar Gestor
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Gestores -->
+                            <div class="card card-dashboard">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Nome</th>
+                                                    <th>Email</th>
+                                                    <th>CPF</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="gestores-lista">
+                                                <tr>
+                                                    <td colspan="5" class="text-center">Carregando...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modais -->
+    <!-- Modal Adicionar Carro -->
+    <div class="modal fade" id="modalAddCarro" tabindex="-1" aria-labelledby="modalAddCarroLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAddCarroLabel">Adicionar Novo Carro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAddCarro">
+                        <div class="mb-3">
+                            <label for="carro-modelo" class="form-label">Modelo</label>
+                            <input type="text" class="form-control" id="carro-modelo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="carro-marca" class="form-label">Marca</label>
+                            <input type="text" class="form-control" id="carro-marca" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="carro-ano" class="form-label">Ano</label>
+                                <input type="number" class="form-control" id="carro-ano" min="1900" max="2099" required>
+                            </div>
+                            <div class="col">
+                                <label for="carro-cor" class="form-label">Cor</label>
+                                <input type="text" class="form-control" id="carro-cor" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="carro-placa" class="form-label">Placa</label>
+                            <input type="text" class="form-control" id="carro-placa" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="carro-odometro" class="form-label">Odômetro Atual (km)</label>
+                            <input type="number" class="form-control" id="carro-odometro" min="0" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="carro-disponivel" checked>
+                            <label class="form-check-label" for="carro-disponivel">Disponível para uso</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-salvar-carro">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Motorista -->
+    <div class="modal fade" id="modalAddMotorista" tabindex="-1" aria-labelledby="modalAddMotoristaLabel"
+    aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAddMotoristaLabel">Adicionar Novo Motorista</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAddMotorista">
+                        <div class="mb-3">
+                            <label for="motorista-nome" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="motorista-nome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motorista-cpf" class="form-label">CPF</label>
+                            <input type="text" class="form-control" id="motorista-cpf" placeholder="000.000.000-00"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motorista-telefone" class="form-label">Telefone</label>
+                            <input type="tel" class="form-control" id="motorista-telefone" placeholder="(00) 00000-0000"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motorista-habilitacao" class="form-label">Número da Habilitação</label>
+                            <input type="text" class="form-control" id="motorista-habilitacao" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-salvar-motorista">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Criar Evento -->
+    <div class="modal fade" id="modalAddEvento" tabindex="-1" aria-labelledby="modalAddEventoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAddEventoLabel">Criar Novo Evento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAddEvento">
+                        <div class="mb-3">
+                            <label for="evento-carro" class="form-label">Carro</label>
+                            <select class="form-select" id="evento-carro" required>
+                                <option value="">Selecione um carro</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="evento-motorista" class="form-label">Motorista</label>
+                            <select class="form-select" id="evento-motorista" required>
+                                <option value="">Selecione um motorista</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Odômetro Inicial</label>
+                            <input type="number" class="form-control" id="evento-odometro">
+                            <small class="form-text text-muted">Valor inicial do odômetro. Pré-preenchido com o valor
+                                atual do veículo.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-criar-evento"
+                        onclick="window.createEvento()">Criar Evento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Concluir Evento -->
+    <div class="modal fade" id="modalConcluirEvento" tabindex="-1" aria-labelledby="modalConcluirEventoLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalConcluirEventoLabel">Concluir Evento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formConcluirEvento">
+                        <input type="hidden" id="concluir-evento-id">
+                        <div class="mb-3">
+                            <label class="form-label">Carro</label>
+                            <input type="text" class="form-control" id="concluir-evento-carro" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Motorista</label>
+                            <input type="text" class="form-control" id="concluir-evento-motorista" readonly>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Odômetro Inicial</label>
+                                <input type="number" class="form-control" id="concluir-evento-odometro-inicial"
+                                    readonly>
+                            </div>
+                            <div class="col">
+                                <label for="concluir-evento-odometro-final" class="form-label">Odômetro Final</label>
+                                <input type="number" class="form-control" id="concluir-evento-odometro-final" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="concluir-evento-metodo-pagamento" class="form-label">Método de Pagamento</label>
+                            <select class="form-select" id="concluir-evento-metodo-pagamento" required>
+                                <option value="">Selecione</option>
+                                <option value="CARTAO">Cartão</option>
+                                <option value="PIX">PIX</option>
+                                <option value="DINHEIRO">Dinheiro</option>
+                                <option value="BOLETO">Boleto</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-concluir-evento"
+                        onclick="window.concludeEvento()">Concluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Pagamento -->
+    <div class="modal fade" id="modalAddPagamento" tabindex="-1" aria-labelledby="modalAddPagamentoLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAddPagamentoLabel">Registrar Pagamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAddPagamento">
+                        <div class="mb-3">
+                            <label for="pagamento-evento" class="form-label">Evento</label>
+                            <select class="form-select" id="pagamento-evento" required>
+                                <option value="">Selecione um evento</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pagamento-valor" class="form-label">Valor (R$)</label>
+                            <input type="number" class="form-control" id="pagamento-valor" min="0" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pagamento-data" class="form-label">Data</label>
+                            <input type="date" class="form-control" id="pagamento-data" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pagamento-metodo" class="form-label">Método de Pagamento</label>
+                            <select class="form-select" id="pagamento-metodo" required>
+                                <option value="">Selecione</option>
+                                <option value="CARTAO">Cartão</option>
+                                <option value="PIX">PIX</option>
+                                <option value="DINHEIRO">Dinheiro</option>
+                                <option value="BOLETO">Boleto</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pagamento-status" class="form-label">Status</label>
+                            <select class="form-select" id="pagamento-status" required>
+                                <option value="">Selecione</option>
+                                <option value="PENDENTE">Pendente</option>
+                                <option value="PAGO">Pago</option>
+                                <option value="CANCELADO">Cancelado</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-salvar-pagamento">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Gestor -->
+    <div class="modal fade" id="modalAddGestor" tabindex="-1" aria-labelledby="modalAddGestorLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAddGestorLabel">Adicionar Gestor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAddGestor">
+                        <div class="mb-3">
+                            <label for="gestor-nome" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="gestor-nome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gestor-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="gestor-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gestor-cpf" class="form-label">CPF</label>
+                            <input type="text" class="form-control" id="gestor-cpf" placeholder="000.000.000-00"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gestor-senha" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="gestor-senha" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gestor-confirmar-senha" class="form-label">Confirmar Senha</label>
+                            <input type="password" class="form-control" id="gestor-confirmar-senha" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-salvar-gestor">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
+    <script type="module" src="../static/js/dashboard.js"></script>
+</body>
+
+</html>

@@ -4,7 +4,7 @@ const router = express.Router();
 const verificarJWT = require("../../middlewares/auth");
 
 router.post("/login",  GestorController.loginGestor);
-router.post("/gestor", verificarJWT, GestorController.criandoGestor);
+router.post("/gestor", GestorController.criandoGestor);
 router.get("/gestores", verificarJWT, GestorController.buscarGestores);
 router.get("/gestor/:id", verificarJWT, GestorController.buscarGestorId);
 router.put("/gestor/:id",  verificarJWT, GestorController.editarGestor);

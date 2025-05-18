@@ -1,0 +1,161 @@
+:root {
+    --primary-color: #5c7cfa;
+    --secondary-color: #1a1f36;
+    --light-bg: #f1f3f5;
+    --text-light: #f8f9fa;
+    --text-muted: #adb5bd;
+}
+
+body {
+    background-color: var(--light-bg);
+    font-family: 'Segoe UI', sans-serif;
+    color: #343a40;
+}
+
+.sidebar {
+    min-height: 100vh;
+    background-color: var(--secondary-color);
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar .nav-link {
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 0.8rem 1.25rem;
+    transition: background 0.3s, color 0.3s;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border-left: 4px solid #fff;
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.logo-container {
+    padding: 20px;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.dashboard-header {
+    background-color: #fff;
+    padding: 20px 30px;
+    border-bottom: 2px solid var(--primary-color);
+    margin-bottom: 25px;
+}
+
+.card-dashboard {
+    background-color: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.card-dashboard:hover {
+    transform: translateY(-4px);
+}
+
+.card-icon {
+    font-size: 2.2rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.section-title {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.status-disponivel {
+    background-color: #51cf66;
+}
+
+.status-indisponivel {
+    background-color: #ff6b6b;
+}
+
+.badge-custom-success {
+    background-color: #51cf66;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.badge-custom-danger {
+    background-color: #ff6b6b;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.badge-custom-warning {
+    background-color: #fab005;
+    color: #000;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.btn-action {
+    margin-right: 5px;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom: none;
+}
+
+#calendar {
+    height: 300px;
+    background: white;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Estilização do rodapé */
+footer {
+    background-color: var(--secondary-color);
+    color: var(--text-light);
+    padding: 1rem 0;
+    text-align: center;
+    margin-top: 2rem;
+}
+footer small {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+    }
+}
