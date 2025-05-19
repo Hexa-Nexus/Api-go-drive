@@ -87,23 +87,20 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li>
-                    <a class="dropdown-item" href="#"
-                      ><i class="fas fa-user me-1"></i> Perfil</a
-                    >
+                    <a class="dropdown-item" href="#" id="btn-profile">
+                      <i class="fas fa-user me-1"></i> Perfil
+                    </a>
                   </li>
                   <li>
-                    <a class="dropdown-item" href="#"
-                      ><i class="fas fa-cog me-1"></i> Configurações</a
-                    >
+                    <a class="dropdown-item" href="#" id="btn-settings">
+                      <i class="fas fa-cog me-1"></i> Configurações
+                    </a>
                   </li>
                   <li><hr class="dropdown-divider" /></li>
                   <li>
-                    <a
-                      class="dropdown-item text-danger"
-                      href="#"
-                      id="dropdown-logout"
-                      ><i class="fas fa-sign-out-alt me-1"></i> Sair</a
-                    >
+                    <a class="dropdown-item text-danger" href="#" id="dropdown-logout">
+                      <i class="fas fa-sign-out-alt me-1"></i> Sair
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -237,6 +234,44 @@
             </div>
           </div>
           <!-- Fim do Modal -->
+
+          <!-- Modal para Atualizar Gestor -->
+          <div class="modal fade" id="modalUpdateGestor" tabindex="-1" aria-labelledby="modalUpdateGestorLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form id="form-update-gestor">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="modalUpdateGestorLabel">Atualizar Gestor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                  </div>
+                  <div class="modal-body">
+                    <input type="hidden" id="update-id">
+                    <div class="mb-3">
+                      <label for="update-name" class="form-label">Nome</label>
+                      <input type="text" class="form-control" id="update-name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                      <label for="update-cpf" class="form-label">CPF</label>
+                      <input type="text" class="form-control" id="update-cpf" name="cpf" required>
+                    </div>
+                    <div class="mb-3">
+                      <label for="update-email" class="form-label">Email</label>
+                      <input type="email" class="form-control" id="update-email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                      <label for="update-password" class="form-label">Nova Senha (opcional)</label>
+                      <input type="password" class="form-control" id="update-password" name="password">
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="submit" class="btn btn-primary">Atualizar</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <!-- Fim do Modal -->
         </div>
         <!-- Fim do Main Content -->
       </div>
@@ -250,5 +285,10 @@
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../static/js/auth/session.js"></script>
+    <script src="../../static/js/gestor/addGestor.js"></script>
+    <script src="../../static/js/gestor/listarGestor.js"></script>
+    <script src="../../static/js/gestor/updateGestor.js"></script>
+    <script src="../../static/js/gestor/profilesSettings.js"></script>
   </body>
 </html>

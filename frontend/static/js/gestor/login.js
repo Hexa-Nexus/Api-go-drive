@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loginForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const email = document.getElementById("loginEmail").value;
+    const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
 
     // Basic validation
@@ -35,25 +35,42 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    // Optional: email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showMessage("Por favor, insira um e-mail válido.", "danger");
+      return;
+    }
+
     try {
       showMessage("Autenticando...", "info");
 
       // Attempt login using your API function
-      const result = await loginGestor(email, password);
+      const response = await fetch("http://localhost:3000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao fazer login");
+      }
 
       // On successful login
       showMessage("Login realizado com sucesso! Redirecionando...", "success");
 
       // Store authentication token and gestor info in localStorage
-      localStorage.setItem("token", result.token);
-      localStorage.setItem("gestorId", result.id); // Salva o ID do gestor
-
-      // Tenta salvar o nome do gestor (ajuste conforme o backend retorna)
-      localStorage.setItem("gestorName", result.nome || result.name || "");
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userName", data.name);
+      localStorage.setItem("userId", data.id);
 
       // Redirect to dashboard after short delay
       setTimeout(() => {
-        window.location.href = "/frontend/pages/gestor/home.html"; // Ajuste o caminho conforme necessário
+        window.location.href = "/frontend/pages/dashboard/PainelDashboard.html"; // Ajuste o caminho conforme necessário
       }, 1500);
     } catch (error) {
       console.error("Erro no login:", error);
@@ -80,5 +97,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // Check if user is already logged in and redirect if necessary
   const token = localStorage.getItem("token");
   if (token) {
+    window.location.href = "/frontend/pages/dashboard/PainelDashboard.html";
   }
 });
