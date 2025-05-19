@@ -1,0 +1,143 @@
+import { API_BASE_URL } from "../api.js";
+
+// Função para validar CPF
+function validarCPF(cpf) {
+    const regex = /^\d{11}$/;
+    return regex.test(cpf);
+}
+
+// Função para validar telefone
+function validarTelefone(telefone) {
+    const regex = /^\d{10,11}$/;
+    return regex.test(telefone);
+}
+
+// Função para validar habilitação
+function validarHabilitacao(habilitacao) {
+    const regex = /^\d{11}$/;
+    return regex.test(habilitacao);
+}
+
+// Função para adicionar motorista
+async function adicionarMotorista(event) {
+    event.preventDefault();
+    
+    const form = document.getElementById('form-add-motorista');
+    const nome = form.querySelector('#nome').value;
+    const cpf = form.querySelector('#cpf').value.replace(/\D/g, '');
+    const telefone = form.querySelector('#telefone').value.replace(/\D/g, '');
+    const habilitacao = form.querySelector('#habilitacao').value.replace(/\D/g, '');
+    
+    // Validações
+    if (!validarCPF(cpf)) {
+        showToastMessage('CPF inválido. Digite apenas números (11 dígitos)', 'danger');
+        return;
+    }
+
+    if (!validarTelefone(telefone)) {
+        showToastMessage('Telefone inválido. Digite apenas números (10 ou 11 dígitos)', 'danger');
+        return;
+    }
+
+    if (!validarHabilitacao(habilitacao)) {
+        showToastMessage('Habilitação inválida. Digite apenas números (11 dígitos)', 'danger');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        // Decodificar o token JWT para obter o ID do gestor
+        const gestorId = JSON.parse(atob(token.split('.')[1])).id;
+        if (!gestorId) {
+            throw new Error('ID do gestor não encontrado no token');
+        }
+
+        const response = await fetch(`${API_BASE_URL}/motorista`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                nome,
+                cpf,
+                telefone,
+                habilitacao,
+                gestorId // Incluindo o ID do gestor no corpo da requisição
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Erro ao adicionar motorista');
+        }
+
+        // Mostrar mensagem de sucesso
+        showToastMessage('Motorista adicionado com sucesso!', 'success');
+
+        // Fechar o modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalAddMotorista'));
+        modal.hide();
+
+        // Limpar o formulário
+        form.reset();
+
+        // Recarregar a lista de motoristas
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Erro:', error);
+        showToastMessage(error.message, 'danger');
+    }
+}
+
+function showToastMessage(message, type) {
+    const toast = document.getElementById('notificationToast');
+    const toastBody = document.getElementById('toastMessage');
+    
+    toastBody.textContent = message;
+    toast.classList.add(`bg-${type}`);
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    setTimeout(() => {
+        toast.classList.remove(`bg-${type}`);
+    }, 5000);
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const formAddMotorista = document.getElementById('form-add-motorista');
+    if (formAddMotorista) {
+        formAddMotorista.addEventListener('submit', adicionarMotorista);
+    }
+
+    // Adicionar máscaras para os campos
+    const cpfInput = document.getElementById('cpf');
+    const telefoneInput = document.getElementById('telefone');
+    const habilitacaoInput = document.getElementById('habilitacao');
+
+    if (cpfInput) {
+        cpfInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 11);
+        });
+    }
+
+    if (telefoneInput) {
+        telefoneInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 11);
+        });
+    }
+
+    if (habilitacaoInput) {
+        habilitacaoInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 11);
+        });
+    }
+});

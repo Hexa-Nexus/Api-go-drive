@@ -18,7 +18,7 @@ function formatPartialCPF(cpf) {
 }
 
 function formatPartialId(id) {
-    return '...' + id.slice(-5);
+    return '#' + id.slice(-5);
 }
 
 function formatPartialEmail(email) {
