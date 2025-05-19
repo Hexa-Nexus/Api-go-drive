@@ -177,16 +177,22 @@ class MotoristaController {
 
   // Obter um motorista por CPF
   static async obter_motorista_por_cpf(req, res) {
-    const { cpf } = req.body;
+    const { cpf } = req.query; // Changed from req.body to req.query
     console.log("Recebendo CPF:", cpf);
 
     if (!cpf) {
       return res.status(400).json({ error: "CPF não fornecido" });
     }
 
+    // Limpar o CPF (remover caracteres não numéricos)
+    const cpfLimpo = cpf.replace(/\D/g, '');
+
     try {
-      const motorista = await prisma.motorista.findUnique({
-        where: { cpf },
+      const motorista = await prisma.motorista.findFirst({
+        where: { 
+          cpf: cpfLimpo,
+          gestorId: req.user.id // Filtrar pelo gestor autenticado
+        },
         select: {
           id: true,
           nome: true,
@@ -204,7 +210,7 @@ class MotoristaController {
 
       return res.status(200).json(motorista);
     } catch (error) {
-      console.error("Erro ao obter o motorista:", error); // Log para ver o erro exato
+      console.error("Erro ao obter o motorista:", error);
       return res.status(500).json({ error: "Erro ao obter o motorista" });
     }
   }
