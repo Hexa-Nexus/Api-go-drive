@@ -134,6 +134,11 @@
 
           <!-- Filtros -->
           <div class="card card-dashboard mb-4">
+            <!-- Adicione esse bloco junto com seus filtros -->
+            <div class="col-md-12 mb-2 text-end">
+              <button class="btn btn-outline-secondary" id="btn-refresh-carros">
+                <i class="fas fa-sync-alt"></i> Atualizar Lista
+              </button>
             <div class="card-body">
               <div class="row">
                 <div class="col-md-4 mb-2">
@@ -179,6 +184,7 @@
                     <option value="disponivel">Disponíveis</option>
                     <option value="indisponivel">Indisponíveis</option>
                   </select>
+                </div>
                 </div>
               </div>
             </div>
@@ -265,6 +271,8 @@
                         id="ano"
                         name="ano"
                         placeholder="Digite o ano"
+                        min="1900"
+                        max="2200"
                         required
                       />
                     </div>
@@ -308,7 +316,7 @@
                       type="hidden"
                       id="gestorId"
                       name="gestorId"
-                      value="<!-- valor do gestor aqui -->"
+                      value=""
                     />
                   </div>
                   <div class="modal-footer">
@@ -321,6 +329,124 @@
                     </button>
                     <button type="submit" class="btn btn-primary">
                       Salvar Carro
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal para Atualizar Carro -->
+          <div
+            class="modal fade"
+            id="modalUpdateCarro"
+            tabindex="-1"
+            aria-labelledby="modalUpdateCarroLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form id="form-update-carro">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="modalUpdateCarroLabel">
+                      Atualizar Veículo
+                    </h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Fechar"
+                    ></button>
+                  </div>
+                  <div class="modal-body">
+                    <!-- Campo oculto para armazenar o ID do carro -->
+                    <input type="hidden" id="updateCarroId" name="id" />
+
+                    <div class="mb-3">
+                      <label for="updateModelo" class="form-label">Modelo</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="updateModelo"
+                        name="modelo"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="updateMarca" class="form-label">Marca</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="updateMarca"
+                        name="marca"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="updateAno" class="form-label">Ano</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="updateAno"
+                        name="ano"
+                        min="1900"
+                        max="2200"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="updateCor" class="form-label">Cor</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="updateCor"
+                        name="cor"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="updatePlaca" class="form-label">Placa</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="updatePlaca"
+                        name="placa"
+                        disabled
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="updateOdometro" class="form-label">Odômetro Atual</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="updateOdometro"
+                        name="odometroAtual"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="updateDisponivel" class="form-label">Status</label>
+                      <select
+                        class="form-select"
+                        id="updateDisponivel"
+                        name="disponivel"
+                        required
+                      >
+                        <option value="true">Disponível</option>
+                        <option value="false">Indisponível</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Fechar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                      Atualizar Veículo
                     </button>
                   </div>
                 </form>
@@ -342,5 +468,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../static/js/auth/session.js"></script>
     <script src="../../static/js/gestor/profilesSettings.js"></script>
+    <script src="../../static/js/carro/addCarro.js"></script>
+    <script src="../../static/js/carro/listarCarros.js"></script>
+    <script src="../../static/js/carro/updateCarros.js"></script>
+    <script src="../../static/js/carro/buscarCarro.js"></script>
   </body>
 </html>

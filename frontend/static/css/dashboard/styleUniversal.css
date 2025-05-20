@@ -96,20 +96,20 @@ body {
 }
 
 /* Status Indicators */
-.status-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+.status-indicador {
     display: inline-block;
-    margin-right: 8px;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    margin-right: 0.5rem;
 }
 
 .status-disponivel {
-    background-color: var(--success-color);
+    background-color: #10b981; /* Verde */
 }
 
 .status-indisponivel {
-    background-color: var(--danger-color);
+    background-color: #ef4444; /* Vermelho */
 }
 
 /* Custom Badges */
@@ -199,7 +199,7 @@ footer small {
     .sidebar {
         min-height: auto;
     }
-    
+
     .card-dashboard {
         margin-bottom: 1rem;
     }

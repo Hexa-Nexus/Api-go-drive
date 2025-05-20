@@ -78,6 +78,7 @@ class CarroController {
       const carro = await prisma.carro.findUnique({
         where: { id },
         select: {
+          id: true, // Adicione esta linha
           modelo: true,
           marca: true,
           ano: true,
@@ -94,7 +95,7 @@ class CarroController {
 
       return res.status(200).json(carro);
     } catch (error) {
-      console.error("Erro ao obter o carro:", error); // Log para ver o erro exato
+      console.error("Erro ao obter o carro:", error);
       return res.status(500).json({ error: "Erro ao obter o carro" });
     }
   }
@@ -157,50 +158,47 @@ class CarroController {
 
   // Update no carro
   static async atualizar_carro(req, res) {
-    const { modelo, marca, ano, cor, placa, disponivel, odometroAtual } =
-      req.body;
     const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "carroId é obrigatório" });
-    }
+    // Note que não extraímos "placa" dos dados enviados, pois ela não pode ser alterada
+    const { modelo, marca, ano, cor, odometroAtual, disponivel } = req.body;
 
     try {
-      // Verificar se o carro existe
+      // Verifica se o carro existe
       const carroExistente = await prisma.carro.findUnique({
-        where: { id: id },
+        where: { id },
       });
 
       if (!carroExistente) {
         return res.status(404).json({ error: "Carro não encontrado" });
       }
 
-      // Buscando o carro pela placa (use findFirst para campos não únicos)
-      const carro = await prisma.carro.findFirst({
-        where: { placa: placa }, // Busca o carro pela placa
+      // Verifica se já existe outro carro com a mesma placa (excluindo o carro que está sendo atualizado)
+      const carroComMesmaPlaca = await prisma.carro.findFirst({
+        where: {
+          placa: carroExistente.placa,
+          NOT: { id },
+        },
       });
 
-      if (carro) {
+      if (carroComMesmaPlaca) {
         return res.status(400).json({ error: "Essa placa já está em uso!" });
       }
 
-      // Atualizar os dados do carro
+      // Realiza a atualização (não alterando a placa)
       const carroAtualizado = await prisma.carro.update({
-        where: { id: id },
+        where: { id },
         data: {
           modelo,
           marca,
           ano,
           cor,
-          placa,
-          disponivel,
           odometroAtual,
+          disponivel,
         },
       });
-
       return res.status(200).json(carroAtualizado);
     } catch (error) {
-      console.error("Erro ao atualizar o carro:", error);
+      console.error("Erro ao atualizar carro:", error);
       return res.status(500).json({ error: "Erro ao atualizar o carro" });
     }
   }
