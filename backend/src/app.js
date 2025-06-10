@@ -9,11 +9,15 @@ const cors = require("cors");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
-const carroRouter = require("./routes/Carro/carroRouter");
-const eventoRouter = require("./routes/Evento/eventoRouter");
-const motoristaRouter = require("./routes/Motorista/motoristaRouter");
-const gestorRouter = require("./routes/Gestor/GestorRoutes");
-const pagamentoRouter = require("./routes/Pagamento/PagamentoRouter");
+// Import all routers from the index file
+const {
+  carroRouter,
+  eventoRouter,
+  motoristaRouter,
+  gestorRouter,
+  pagamentoRouter,
+  relatorioRouter
+} = require("./routes/index");
 
 const swaggerOptions = {
   swaggerDefinition: {
@@ -68,6 +72,7 @@ app.use("/api", eventoRouter);
 app.use("/api", motoristaRouter);
 app.use("/api", gestorRouter);
 app.use("/api", pagamentoRouter);
+app.use("/api/relatorios", relatorioRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

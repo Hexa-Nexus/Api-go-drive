@@ -4,7 +4,7 @@ import { API_BASE_URL } from "../api.js";
 async function carregarDadosMotorista(id) {
     const token = localStorage.getItem('token');
     if (!token) {
-        showToastMessage('Usuário não autenticado', 'danger');
+        showErrorModal('Erro de Autenticação', 'Usuário não autenticado');
         return;
     }
 
@@ -20,7 +20,7 @@ async function carregarDadosMotorista(id) {
         }
 
         const motorista = await response.json();
-        
+
         // Preencher o formulário com os dados do motorista
         document.getElementById('edit-id').value = motorista.id;
         document.getElementById('edit-nome').value = motorista.nome;
@@ -35,7 +35,7 @@ async function carregarDadosMotorista(id) {
 
     } catch (error) {
         console.error('Erro:', error);
-        showToastMessage(error.message, 'danger');
+        showErrorModal('Erro', error.message);
     }
 }
 
@@ -73,21 +73,34 @@ async function atualizarMotorista(event) {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || data.message || 'Erro ao atualizar motorista');
+            // Verifica se é o erro específico de motorista em evento ativo
+            if (data.error && data.error.includes("motorista enquanto ele estiver em um evento ativo")) {
+                showErrorModal(
+                    'Restrição de Alteração',
+                    'Não é possível alterar a disponibilidade do motorista enquanto ele estiver em um evento ativo.',
+                    true
+                );
+            } else {
+                throw new Error(data.error || data.message || 'Erro ao atualizar motorista');
+            }
+            return;
         }
 
-        showToastMessage('Motorista atualizado com sucesso!', 'success');
-        
-        // Fechar o modal
+        // Mostrar modal de sucesso
+        showSuccessModal('Motorista atualizado com sucesso!');
+
+        // Fechar o modal de edição
         const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditMotorista'));
         modal.hide();
 
-        // Recarregar a lista de motoristas
-        window.location.reload();
+        // Recarregar a lista de motoristas após um tempo
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
 
     } catch (error) {
         console.error('Erro:', error);
-        showToastMessage(error.message, 'danger');
+        showErrorModal('Erro na Atualização', error.message);
     }
 }
 
@@ -97,19 +110,58 @@ document.addEventListener('DOMContentLoaded', () => {
     if (formEditMotorista) {
         formEditMotorista.addEventListener('submit', atualizarMotorista);
     }
+
+    // Adicionar botão de fechar ao modal de erro
+    document.querySelectorAll('.btn-close-error').forEach(button => {
+        button.addEventListener('click', () => {
+            const errorModal = bootstrap.Modal.getInstance(document.getElementById('errorModal'));
+            if (errorModal) errorModal.hide();
+        });
+    });
 });
 
-// Função auxiliar para mostrar notificações
+// Função para exibir o modal de erro personalizado
+function showErrorModal(title, message, isWarning = false) {
+    const modalTitle = document.getElementById('errorModalTitle');
+    const modalBody = document.getElementById('errorModalBody');
+    const modalIcon = document.getElementById('errorModalIcon');
+
+    modalTitle.textContent = title;
+    modalBody.textContent = message;
+
+    // Define o ícone e cor baseado no tipo de erro
+    if (isWarning) {
+        modalIcon.className = 'bi bi-exclamation-triangle text-warning display-1';
+        document.getElementById('errorModalHeader').classList.remove('bg-danger');
+        document.getElementById('errorModalHeader').classList.add('bg-warning');
+    } else {
+        modalIcon.className = 'bi bi-x-circle text-danger display-1';
+        document.getElementById('errorModalHeader').classList.remove('bg-warning');
+        document.getElementById('errorModalHeader').classList.add('bg-danger');
+    }
+
+    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+    errorModal.show();
+}
+
+// Função para exibir modal de sucesso
+function showSuccessModal(message) {
+    document.getElementById('successMessage').textContent = message;
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    successModal.show();
+}
+
+// Função auxiliar para mostrar notificações toast (mantida para compatibilidade)
 function showToastMessage(message, type) {
     const toast = document.getElementById('notificationToast');
     const toastBody = document.getElementById('toastMessage');
-    
+
     toastBody.textContent = message;
     toast.classList.add(`bg-${type}`);
-    
+
     const bsToast = new bootstrap.Toast(toast);
     bsToast.show();
-    
+
     setTimeout(() => {
         toast.classList.remove(`bg-${type}`);
     }, 5000);

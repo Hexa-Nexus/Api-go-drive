@@ -71,22 +71,26 @@ async function buscarPorCPF() {
             }
         });
 
-        const data = await response.json();
-
+        // Handle 404 case before attempting to parse JSON
         if (response.status === 404) {
-            throw new Error('Motorista não encontrado');
+            showToastMessage('Motorista não encontrado com este CPF', 'warning');
+            await carregarTodosMotoristas();
+            return;
         }
 
+        // For other error status codes
         if (!response.ok) {
-            throw new Error(data.error || 'Erro ao buscar motorista');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erro ao buscar motorista');
         }
 
+        const data = await response.json();
         renderizarMotoristas([data]);
         showToastMessage('Motorista encontrado!', 'success');
 
     } catch (error) {
-        console.error('Erro:', error);
-        showToastMessage(error.message, 'warning');
+        console.error('Erro na busca:', error);
+        showToastMessage(error.message || 'Erro ao buscar motorista', 'danger');
         await carregarTodosMotoristas();
     } finally {
         hideLoading();

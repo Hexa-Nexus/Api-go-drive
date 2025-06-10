@@ -9,6 +9,8 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Font Awesome -->
     <link
       rel="stylesheet"
@@ -308,6 +310,7 @@
                         id="odometroAtual"
                         name="odometroAtual"
                         placeholder="Digite o odômetro atual"
+                        min="0"
                         required
                       />
                     </div>
@@ -421,6 +424,7 @@
                         class="form-control"
                         id="updateOdometro"
                         name="odometroAtual"
+                        min="0"
                         required
                       />
                     </div>
@@ -458,6 +462,141 @@
       </div>
     </div>
 
+    <!-- Modal de Erro -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white" id="errorModalHeader">
+            <h5 class="modal-title" id="errorModalTitle">Erro</h5>
+            <button type="button" class="btn-close btn-close-white btn-close-error" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <i class="bi bi-x-circle text-danger display-1" id="errorModalIcon"></i>
+            <p class="mt-3 mb-0" id="errorModalBody">Mensagem de erro</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-close-error" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Sucesso -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="successModalLabel">Sucesso</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <i class="fas fa-check-circle text-success display-1"></i>
+            <p class="mt-3 mb-0" id="successMessage">Operação realizada com sucesso!</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Histórico de Eventos do Carro -->
+    <div class="modal fade" id="carroEventosModal" tabindex="-1" aria-labelledby="carroEventosModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="carroEventosModalLabel">Histórico de Eventos</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Estatísticas -->
+            <div class="row mb-4">
+              <div class="col-md-3">
+                <div class="card bg-light">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Total de Eventos</h6>
+                    <h2 id="total-eventos-carro">0</h2>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card bg-success text-white">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Concluídos</h6>
+                    <h2 id="eventos-concluidos-carro">0</h2>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card bg-warning">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Pendentes</h6>
+                    <h2 id="eventos-pendentes-carro">0</h2>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Cancelados</h6>
+                    <h2 id="eventos-cancelados-carro">0</h2>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estatísticas adicionais -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="card bg-primary text-white">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Distância Total (km)</h6>
+                    <h2 id="distancia-total-carro">0</h2>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card bg-info text-white">
+                  <div class="card-body text-center">
+                    <h6 class="card-title">Valor Total Arrecadado (R$)</h6>
+                    <h2 id="valor-total-carro">0.00</h2>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de Eventos -->
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Motorista</th>
+                    <th>Data Saída</th>
+                    <th>Data Entrada</th>
+                    <th>Km Inicial</th>
+                    <th>Km Final</th>
+                    <th>Distância</th>
+                    <th>Duração</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="carro-eventos-lista">
+                  <tr>
+                    <td colspan="10" class="text-center">Nenhum evento encontrado</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Roda pé -->
     <footer>
       <div class="container">
@@ -472,5 +611,19 @@
     <script src="../../static/js/carro/listarCarros.js"></script>
     <script src="../../static/js/carro/updateCarros.js"></script>
     <script src="../../static/js/carro/buscarCarro.js"></script>
+    <script>
+      function showErrorModal(title, message) {
+        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        document.getElementById('errorModalTitle').textContent = title;
+        document.getElementById('errorModalBody').textContent = message;
+        errorModal.show();
+      }
+
+      function showSuccessModal(message) {
+        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+        document.getElementById('successMessage').textContent = message;
+        successModal.show();
+      }
+    </script>
   </body>
 </html>

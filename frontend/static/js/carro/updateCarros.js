@@ -9,6 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
       carregarDadosCarro(carroId);
     }
   });
+
+  // Adicionar botão de fechar ao modal de erro
+  document.querySelectorAll('.btn-close-error').forEach(button => {
+    button.addEventListener('click', () => {
+      const errorModal = bootstrap.Modal.getInstance(document.getElementById('errorModal'));
+      if (errorModal) errorModal.hide();
+    });
+  });
 });
 
 async function carregarDadosCarro(id) {
@@ -26,8 +34,32 @@ async function carregarDadosCarro(id) {
     abrirModalAtualizacao(carro);
   } catch (error) {
     console.error("Erro:", error);
-    alert("Erro ao carregar dados do carro");
+    showErrorModal("Erro", "Erro ao carregar dados do carro");
   }
+}
+
+// Função para exibir o modal de erro personalizado
+function showErrorModal(title, message, isWarning = false) {
+  const modalTitle = document.getElementById('errorModalTitle');
+  const modalBody = document.getElementById('errorModalBody');
+  const modalIcon = document.getElementById('errorModalIcon');
+
+  modalTitle.textContent = title;
+  modalBody.textContent = message;
+
+  // Define o ícone e cor baseado no tipo de erro
+  if (isWarning) {
+    modalIcon.className = 'bi bi-exclamation-triangle text-warning display-1';
+    document.getElementById('errorModalHeader').classList.remove('bg-danger');
+    document.getElementById('errorModalHeader').classList.add('bg-warning');
+  } else {
+    modalIcon.className = 'bi bi-x-circle text-danger display-1';
+    document.getElementById('errorModalHeader').classList.remove('bg-warning');
+    document.getElementById('errorModalHeader').classList.add('bg-danger');
+  }
+
+  const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+  errorModal.show();
 }
 
 function abrirModalAtualizacao(carro) {
@@ -60,7 +92,7 @@ document
     // Obtém todos os dados do formulário de atualização
     const id = document.getElementById("updateCarroId").value;
     if (!id) {
-      alert("ID do carro não encontrado. Atualize a página e tente novamente.");
+      showErrorModal("Erro", "ID do carro não encontrado. Atualize a página e tente novamente.");
       return;
     }
     const modelo = document.getElementById("updateModelo").value;
@@ -72,6 +104,13 @@ document
       document.getElementById("updateOdometro").value,
       10
     );
+
+    // Validar que o odômetro não seja negativo
+    if (odometroAtual < 0) {
+      showErrorModal("Erro", "O valor do odômetro não pode ser negativo.");
+      return;
+    }
+
     // Converte o valor do select para booleano
     const disponivel =
       document.getElementById("updateDisponivel").value === "true";
@@ -93,19 +132,38 @@ document
           disponivel,
         }),
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Erro ao atualizar o carro");
+        // Verifica se é o erro específico de carro em evento ativo
+        if (data.error && data.error.includes("carro enquanto ele estiver em um evento ativo")) {
+          showErrorModal("Restrição de Alteração",
+                        "Não é possível alterar a disponibilidade do carro enquanto ele estiver em um evento ativo.",
+                        true);
+        } else {
+          throw new Error(data.error || "Erro ao atualizar o carro");
+        }
+        return;
       }
 
-      alert("Carro atualizado com sucesso!");
+      // Modal de sucesso
+      document.getElementById("successMessage").textContent = "Carro atualizado com sucesso!";
+      const successModal = new bootstrap.Modal(document.getElementById("successModal"));
+      successModal.show();
+
+      // Fechar o modal de edição
       const updateModal = bootstrap.Modal.getInstance(
         document.getElementById("modalUpdateCarro")
       );
       updateModal.hide();
-      loadCarros(); // Recarrega a lista de carros (certifique-se de que essa função está implementada)
+
+      // Recarregar a lista após 1 segundo
+      setTimeout(() => {
+        loadCarros(); // Recarrega a lista de carros
+      }, 1000);
     } catch (error) {
       console.error("Erro ao atualizar carro:", error);
-      alert("Erro ao atualizar carro: " + error.message);
+      showErrorModal("Erro na Atualização", error.message);
     }
   });

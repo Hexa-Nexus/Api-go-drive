@@ -52,7 +52,7 @@ async function loadGestores() {
                 <td>${formatPartialCPF(gestor.cpf)}</td>
                 <td>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-primary btn-edit" data-id=""${gestor.id}">
+                        <button class="btn btn-primary btn-edit" data-id="${gestor.id}">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="btn btn-danger btn-delete" data-id="${gestor.id}">

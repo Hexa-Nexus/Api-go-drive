@@ -25,6 +25,24 @@ class CarroController {
         return res.status(400).json({ error: "Gestor não encontrado!" });
       }
 
+      // Validação da placa do carro
+      // Formato padrão brasileiro: ABC1234 ou ABC1D23 (Mercosul)
+      const placaRegexAntiga = /^[A-Z]{3}[0-9]{4}$/;
+      const placaRegexMercosul = /^[A-Z]{3}[0-9]{1}[A-Z]{1}[0-9]{2}$/;
+
+      if (!placaRegexAntiga.test(placa) && !placaRegexMercosul.test(placa)) {
+        return res.status(400).json({
+          error: "Formato de placa inválido! Use o formato ABC1234 (padrão antigo) ou ABC1D23 (padrão Mercosul)."
+        });
+      }
+
+      // Validar que o odômetro não seja negativo
+      if (odometroAtual < 0) {
+        return res.status(400).json({
+          error: "O valor do odômetro não pode ser negativo."
+        });
+      }
+
       // Buscando o carro pela placa (use findFirst para campos não únicos)
       const carro = await prisma.carro.findFirst({
         where: { placa: placa }, // Busca o carro pela placa
@@ -40,7 +58,7 @@ class CarroController {
           marca,
           ano,
           cor,
-          placa,
+          placa: placa.toUpperCase(), // Garantir que a placa seja salva em maiúsculas
           odometroAtual,
           disponivel,
           gestorId: gestorId, // Não precisa de 'connect' se você está apenas passando o ID diretamente
@@ -166,10 +184,24 @@ class CarroController {
       // Verifica se o carro existe
       const carroExistente = await prisma.carro.findUnique({
         where: { id },
+        include: {
+          eventos: {
+            where: {
+              status: 'PENDENTE'
+            }
+          }
+        }
       });
 
       if (!carroExistente) {
         return res.status(404).json({ error: "Carro não encontrado" });
+      }
+
+      // Validar que o odômetro não seja negativo
+      if (odometroAtual < 0) {
+        return res.status(400).json({
+          error: "O valor do odômetro não pode ser negativo."
+        });
       }
 
       // Verifica se já existe outro carro com a mesma placa (excluindo o carro que está sendo atualizado)
@@ -182,6 +214,14 @@ class CarroController {
 
       if (carroComMesmaPlaca) {
         return res.status(400).json({ error: "Essa placa já está em uso!" });
+      }
+
+      // Verifica se tem eventos pendentes e está tentando mudar disponibilidade
+      if (carroExistente.eventos.length > 0 && disponivel !== undefined && disponivel !== carroExistente.disponivel) {
+        return res.status(400).json({
+          error: "Não é possível alterar a disponibilidade do carro enquanto ele estiver em um evento ativo",
+          eventoAtivo: carroExistente.eventos[0].id
+        });
       }
 
       // Realiza a atualização (não alterando a placa)

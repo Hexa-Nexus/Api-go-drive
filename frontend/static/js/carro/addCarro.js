@@ -1,5 +1,32 @@
 document.addEventListener("DOMContentLoaded", function () {
   const formAddCarro = document.getElementById("form-add-carro");
+  const placaInput = document.getElementById("placa");
+
+  // Função para validar o formato da placa
+  function validarPlaca(placa) {
+    // Formato padrão brasileiro: ABC1234 ou ABC1D23 (Mercosul)
+    const placaRegexAntiga = /^[A-Za-z]{3}[0-9]{4}$/;
+    const placaRegexMercosul = /^[A-Za-z]{3}[0-9]{1}[A-Za-z]{1}[0-9]{2}$/;
+
+    return placaRegexAntiga.test(placa) || placaRegexMercosul.test(placa);
+  }
+
+  // Adicionar validação ao campo de placa
+  if (placaInput) {
+    placaInput.addEventListener('input', function() {
+      // Converter para maiúsculas
+      this.value = this.value.toUpperCase();
+
+      // Validar formato
+      if (this.value && !validarPlaca(this.value)) {
+        this.setCustomValidity("Formato de placa inválido! Use ABC1234 (padrão antigo) ou ABC1D23 (padrão Mercosul)");
+        this.classList.add("is-invalid");
+      } else {
+        this.setCustomValidity("");
+        this.classList.remove("is-invalid");
+      }
+    });
+  }
 
   // Função para decodificar o payload do JWT
   function parseJwt(token) {
@@ -19,6 +46,20 @@ document.addEventListener("DOMContentLoaded", function () {
   formAddCarro.addEventListener("submit", async function (e) {
     e.preventDefault();
 
+    // Validar a placa antes de enviar
+    const placa = document.getElementById("placa").value;
+    if (!validarPlaca(placa)) {
+      alert("Formato de placa inválido! Use ABC1234 (padrão antigo) ou ABC1D23 (padrão Mercosul)");
+      return;
+    }
+
+    // Validar que o odômetro não seja negativo
+    const odometroAtual = parseInt(document.getElementById("odometroAtual").value, 10);
+    if (odometroAtual < 0) {
+      alert("O valor do odômetro não pode ser negativo.");
+      return;
+    }
+
     // Obtém o token e extrai o id do gestor
     const token = localStorage.getItem("token");
     const gestorId = token ? parseJwt(token).id : "";
@@ -29,11 +70,8 @@ document.addEventListener("DOMContentLoaded", function () {
       marca: document.getElementById("marca").value,
       ano: parseInt(document.getElementById("ano").value, 10),
       cor: document.getElementById("cor").value,
-      placa: document.getElementById("placa").value,
-      odometroAtual: parseInt(
-        document.getElementById("odometroAtual").value,
-        10
-      ),
+      placa: placa.toUpperCase(), // Garantir que a placa seja enviada em maiúsculas
+      odometroAtual: odometroAtual,
       disponivel: true, // Define o carro como disponível por padrão
       gestorId, // valor obtido do token
     };
