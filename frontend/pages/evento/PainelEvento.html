@@ -131,31 +131,80 @@
 
           <!-- Filtros -->
           <div class="card card-dashboard mb-4">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0"><i class="fas fa-filter me-2"></i> Filtros Avançados</h5>
+            </div>
             <div class="card-body">
               <div class="row">
-                <div class="col-md-4 mb-2">
+                <div class="col-md-4 mb-3">
                   <label class="form-label">Filtrar por status</label>
                   <select class="form-select" id="filtro-evento-status">
-                    <option value="todos">Todos</option>
-                    <option value="pendente">Pendentes</option>
-                    <option value="concluido">Concluídos</option>
+                    <option value="todos">Todos os status</option>
+                    <option value="PENDENTE">Pendentes</option>
+                    <option value="CONCLUIDO">Concluídos</option>
+                    <option value="CANCELADO">Cancelados</option>
                   </select>
                 </div>
-                <div class="col-md-4 mb-2">
-                  <label class="form-label">Data inicial</label>
-                  <input
-                    type="date"
-                    class="form-control"
-                    id="filtro-data-inicial"
-                  />
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Buscar por Motorista</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" class="form-control" id="filtro-motorista-nome" list="lista-motoristas" placeholder="Digite o nome do motorista">
+                    <input type="hidden" id="filtro-motorista-id">
+                    <datalist id="lista-motoristas">
+                      <!-- Opções serão carregadas dinamicamente -->
+                    </datalist>
+                  </div>
+                  <div class="invalid-feedback">
+                    Motorista não encontrado. A busca será feita pelo texto digitado.
+                  </div>
+                  <div class="valid-feedback">
+                    Motorista encontrado!
+                  </div>
                 </div>
-                <div class="col-md-4 mb-2">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Buscar por Carro</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-car"></i></span>
+                    <input type="text" class="form-control" id="filtro-carro-nome" list="lista-carros" placeholder="Digite o modelo ou placa">
+                    <input type="hidden" id="filtro-carro-id">
+                    <datalist id="lista-carros">
+                      <!-- Opções serão carregadas dinamicamente -->
+                    </datalist>
+                  </div>
+                  <div class="invalid-feedback">
+                    Carro não encontrado. A busca será feita pelo texto digitado.
+                  </div>
+                  <div class="valid-feedback">
+                    Carro encontrado!
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Data inicial</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                    <input type="date" class="form-control" id="filtro-data-inicial" />
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
                   <label class="form-label">Data final</label>
-                  <input
-                    type="date"
-                    class="form-control"
-                    id="filtro-data-final"
-                  />
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                    <input type="date" class="form-control" id="filtro-data-final" />
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3 d-flex align-items-end">
+                  <div class="d-flex gap-2 w-100">
+                    <button class="btn btn-primary flex-grow-1" id="btn-aplicar-filtros">
+                      <i class="fas fa-search me-1"></i> Buscar
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btn-limpar-filtros">
+                      <i class="fas fa-eraser me-1"></i> Limpar
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -304,6 +353,7 @@
                         id="odometroFinal"
                         name="odometroFinal"
                         placeholder="Digite o odômetro final"
+                        min="0"
                         required
                       />
                     </div>
@@ -343,6 +393,100 @@
               </div>
             </div>
           </div>
+
+          <!-- Modal Visualizar Evento -->
+          <div class="modal fade" id="modalVisualizarEvento" tabindex="-1" aria-labelledby="modalVisualizarEventoLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalVisualizarEventoLabel">Detalhes do Evento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Evento:</strong> <span id="detalhe-evento-id"></span></p>
+                        <p><strong>Veículo:</strong> <span id="detalhe-carro"></span></p>
+                        <p><strong>Motorista:</strong> <span id="detalhe-motorista"></span></p>
+                        <p><strong>Data de Saída:</strong> <span id="detalhe-data-saida"></span></p>
+                        <p><strong>Odômetro Inicial:</strong> <span id="detalhe-odometro-inicial"></span></p>
+                        <p><strong>Odômetro Final:</strong> <span id="detalhe-odometro-final"></span></p>
+                        <p><strong>Status:</strong> <span id="detalhe-status"></span></p>
+
+                        <div id="detalhe-pagamento" class="d-none">
+                            <hr>
+                            <h6>Informações de Pagamento</h6>
+                            <p><strong>Valor:</strong> R$ <span id="detalhe-valor"></span></p>
+                            <p><strong>Método:</strong> <span id="detalhe-metodo"></span></p>
+                            <p><strong>Status:</strong> <span id="detalhe-status-pagamento"></span></p>
+                        </div>
+
+                        <div id="acoes-evento-pendente" class="d-none mt-3">
+                            <hr>
+                            <h6>Ações disponíveis</h6>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success btn-sm" id="btn-concluir-modal">
+                                    <i class="fas fa-check me-1"></i> Concluir Evento
+                                </button>
+                                <button class="btn btn-warning btn-sm" id="btn-cancelar-modal">
+                                    <i class="fas fa-ban me-1"></i> Cancelar Evento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+          </div>
+
+          <div class="modal fade" id="modalRelatorioEvento" tabindex="-1" aria-labelledby="modalRelatorioEventoLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="modalRelatorioEventoLabel">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Evento Concluído com Sucesso
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div class="card">
+                                <div class="card-body">
+                                    <p><strong>Evento:</strong> <span id="relatorio-evento-id"></span></p>
+                                    <p><strong>Data Saída:</strong> <span id="relatorio-data-saida"></span></p>
+                                    <p><strong>Data Conclusão:</strong> <span id="relatorio-data-conclusao"></span></p>
+                                    <p><span id="relatorio-motorista-info"></span></p>
+                                    <p><span id="relatorio-veiculo-info"></span></p>
+                                    <p><strong>Distância:</strong> <span id="relatorio-distancia"></span></p>
+
+                                    <hr>
+                                    <h6>Informações do Pagamento</h6>
+                                    <p><strong>Valor:</strong> <span id="relatorio-valor"></span></p>
+                                    <p><strong>Método:</strong> <span id="relatorio-metodo"></span></p>
+                                    <p><strong>Status:</strong> <span id="relatorio-status-pagamento"></span></p>
+
+                                    <hr>
+                                    <h6>Informações do Relatório</h6>
+                                    <p><strong>Número:</strong> <span id="relatorio-numero"></span></p>
+                                    <p><strong>Tipo:</strong> <span id="relatorio-tipo"></span></p>
+                                    <p><strong>Status:</strong> <span id="relatorio-status"></span></p>
+
+                                    <hr>
+                                    <p><span id="relatorio-gestor-info"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        <button type="button" class="btn btn-primary" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>Imprimir
+                        </button>
+                    </div>
+                </div>
+            </div>
+          </div>
         </div>
         <!-- Fim do Main Content -->
       </div>
@@ -358,5 +502,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../static/js/auth/session.js"></script>
     <script src="../../static/js/gestor/profilesSettings.js"></script>
+    <script src="../../static/js/evento/addEvento.js"></script>
+    <script src="../../static/js/evento/listarEvento.js"></script>
+    <script src="../../static/js/evento/concluirEvento.js"></script>
+    <script src="../../static/js/evento/verificarStatus.js"></script>
   </body>
 </html>

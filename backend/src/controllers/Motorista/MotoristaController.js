@@ -133,6 +133,13 @@ class MotoristaController {
       // Verificar se o motorista existe
       const motorista = await prisma.motorista.findUnique({
         where: { id },
+        include: {
+          eventos: {
+            where: {
+              status: 'PENDENTE'
+            }
+          }
+        }
       });
 
       if (!motorista) {
@@ -149,6 +156,14 @@ class MotoristaController {
         return res
           .status(400)
           .json({ error: "Número de habilitação inválido." });
+      }
+
+      // Verificar se tem eventos pendentes e está tentando mudar disponibilidade
+      if (motorista.eventos.length > 0 && disponivel !== undefined && disponivel !== motorista.disponivel) {
+        return res.status(400).json({
+          error: "Não é possível alterar a disponibilidade do motorista enquanto ele estiver em um evento ativo",
+          eventoAtivo: motorista.eventos[0].id
+        });
       }
 
       // Criar objeto com os campos a serem atualizados
@@ -189,7 +204,7 @@ class MotoristaController {
 
     try {
       const motorista = await prisma.motorista.findFirst({
-        where: { 
+        where: {
           cpf: cpfLimpo,
           gestorId: req.user.id // Filtrar pelo gestor autenticado
         },

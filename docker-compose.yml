@@ -61,6 +61,7 @@ services:
             DB_USER: ${MYSQL_USER}
             DB_PASSWORD: ${MYSQL_PASSWORD}
             DB_NAME: ${MYSQL_DATABASE}
+            DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
         ports:
             - "3000:3000"
         depends_on:
@@ -68,7 +69,19 @@ services:
                 condition: service_healthy
         networks:
             - apigodrive-network
-        command: sh -c "npx prisma migrate dev --schema ./src/prisma/schema.prisma && node ./src/app.js"
+        command: sh -c "npx prisma generate --schema ./src/prisma/schema.prisma && npx prisma migrate deploy --schema ./src/prisma/schema.prisma && node ./src/app.js"
+  frontend:
+        build:
+            dockerfile: Dockerfile
+            context: ./frontend
+        container_name: apigodrive-frontend
+        restart: always
+        ports:
+            - "80:80"
+        depends_on:
+            - apigodrive
+        networks:
+            - apigodrive-network
 
 networks:
     apigodrive-network:

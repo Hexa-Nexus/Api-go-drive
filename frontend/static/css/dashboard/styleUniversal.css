@@ -171,6 +171,31 @@ body {
     padding: 1.5rem;
 }
 
+/* Estilos para o modal de relatório */
+.modal-relatorio .modal-header {
+    background-color: #28a745;
+    color: white;
+}
+
+.modal-relatorio .card {
+    transition: all 0.3s ease;
+}
+
+.modal-relatorio .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.modal-relatorio .badge {
+    font-size: 0.9em;
+    padding: 0.5em 0.8em;
+}
+
+.modal-relatorio .text-success {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
 /* Calendar */
 #calendar {
     height: 400px;
@@ -202,5 +227,27 @@ footer small {
 
     .card-dashboard {
         margin-bottom: 1rem;
+    }
+}
+
+/* Estilo para impressão */
+@media print {
+    .modal-footer,
+    .btn-close {
+        display: none !important;
+    }
+    
+    .modal-relatorio {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        padding: 15px;
+        width: 100%;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
     }
 }

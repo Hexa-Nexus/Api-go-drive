@@ -9,7 +9,7 @@ async function carregarMotoristas() {
 
     try {
         showLoading();
-        
+
         const response = await fetch(`${API_BASE_URL}/motoristas`, {
             method: 'GET',
             headers: {
@@ -50,7 +50,7 @@ function formatarTelefone(telefone) {
     if (!telefone) return '';
     const telefoneStr = telefone.toString();
     const ultimosDigitos = telefoneStr.slice(-4);
-    
+
     // Se o número tiver mais que 9 dígitos (com DDD), mostra 5 dígitos
     // Caso contrário, mostra 4 dígitos
     if (telefoneStr.length > 9) {
@@ -75,6 +75,11 @@ function renderizarMotoristas(motoristas) {
 
     motoristas.forEach(motorista => {
         const tr = document.createElement('tr');
+        // Add cursor pointer style to indicate it's clickable
+        tr.style.cursor = 'pointer';
+        // Add title attribute as a tooltip
+        tr.title = `Clique para ver o perfil de ${motorista.nome}`;
+
         tr.innerHTML = `
             <td>${formatarId(motorista.id)}</td>
             <td>${motorista.nome}</td>
@@ -87,18 +92,43 @@ function renderizarMotoristas(motoristas) {
                 </span>
             </td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="editarMotorista('${motorista.id}')">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-danger" data-id="${motorista.id}">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-primary edit-button" data-id="${motorista.id}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger" data-id="${motorista.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </td>
         `;
 
+        // Add click event listener for the entire row to navigate to driver profile
+        tr.addEventListener('click', (event) => {
+            // Prevent navigation if clicking on action buttons
+            if (event.target.closest('.btn-group')) {
+                return;
+            }
+
+            // Navigate to driver profile page
+            window.location.href = `../motorista/DetalheMotorista.html?id=${motorista.id}`;
+        });
+
+        // Add click event listener for edit button
+        const editButton = tr.querySelector('.edit-button');
+        editButton.addEventListener('click', (event) => {
+            // Stop event propagation to prevent row click
+            event.stopPropagation();
+            editarMotorista(motorista.id);
+        });
+
         // Add click event listener for delete button
         const deleteButton = tr.querySelector('.btn-danger');
-        deleteButton.addEventListener('click', () => confirmarExclusao(motorista.id));
+        deleteButton.addEventListener('click', (event) => {
+            // Stop event propagation to prevent row click
+            event.stopPropagation();
+            confirmarExclusao(motorista.id);
+        });
 
         tbody.appendChild(tr);
     });
@@ -121,14 +151,14 @@ function hideLoading() {
 function showToastMessage(message, type) {
     const toast = document.getElementById('notificationToast');
     const toastBody = document.getElementById('toastMessage');
-    
+
     if (toast && toastBody) {
         toastBody.textContent = message;
         toast.classList.add(`bg-${type}`);
-        
+
         const bsToast = new bootstrap.Toast(toast);
         bsToast.show();
-        
+
         setTimeout(() => {
             toast.classList.remove(`bg-${type}`);
         }, 5000);
@@ -137,6 +167,16 @@ function showToastMessage(message, type) {
 
 // Initialize the list when the page loads
 document.addEventListener('DOMContentLoaded', () => {
+    // Add CSS for clickable rows
+    const style = document.createElement('style');
+    style.textContent = `
+        #motoristas-lista tr:hover {
+            background-color: #f0f8ff !important; /* Light blue background on hover */
+            transition: background-color 0.2s;
+        }
+    `;
+    document.head.appendChild(style);
+
     carregarMotoristas();
 });
 

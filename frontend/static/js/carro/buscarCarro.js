@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       let carros = await response.json();
       carros = filtrarDisponibilidade(carros, filtroDisponibilidade.value);
-      renderizarCarros(carros);
+      renderCarrosList(carros);
     } catch (error) {
       console.error("Erro:", error);
       alert(error.message);
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       let carros = await response.json();
       carros = filtrarDisponibilidade(carros, filtroDisponibilidade.value);
-      renderizarCarros(carros);
+      renderCarrosList(carros);
     } catch (error) {
       console.error("Erro:", error);
       alert(error.message);
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ? carroEncontrado
         : [carroEncontrado];
       carros = filtrarDisponibilidade(carros, filtroDisponibilidade.value);
-      renderizarCarros(carros);
+      renderCarrosList(carros);
     } catch (error) {
       console.error("Erro:", error);
       alert(error.message);

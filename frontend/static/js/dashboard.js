@@ -309,20 +309,100 @@ function updateAvailableMotoristas(motoristas) {
 
 function initCalendar() {
   const calendarEl = document.getElementById("calendar");
+
+  // Adicionar controles de navegação personalizados acima do calendário
+  const calendarNavigation = document.createElement("div");
+  calendarNavigation.className = "calendar-navigation mb-3";
+  calendarNavigation.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+      <div class="btn-group mb-2">
+        <button type="button" class="btn btn-outline-primary" id="btn-prev-year">
+          <i class="fas fa-angle-double-left"></i> Ano Anterior
+        </button>
+        <button type="button" class="btn btn-outline-primary" id="btn-prev-3-months">
+          <i class="fas fa-angle-left"></i> 3 Meses
+        </button>
+        <button type="button" class="btn btn-outline-primary" id="btn-prev-month">
+          <i class="fas fa-angle-left"></i> Mês
+        </button>
+      </div>
+      <div class="mb-2">
+        <select id="month-selector" class="form-select form-select-sm d-inline-block" style="width: auto">
+          <option value="0">Janeiro</option>
+          <option value="1">Fevereiro</option>
+          <option value="2">Março</option>
+          <option value="3">Abril</option>
+          <option value="4">Maio</option>
+          <option value="5">Junho</option>
+          <option value="6">Julho</option>
+          <option value="7">Agosto</option>
+          <option value="8">Setembro</option>
+          <option value="9">Outubro</option>
+          <option value="10">Novembro</option>
+          <option value="11">Dezembro</option>
+        </select>
+        <select id="year-selector" class="form-select form-select-sm d-inline-block ms-2" style="width: auto">
+          <!-- Anos serão adicionados dinamicamente via JavaScript -->
+        </select>
+        <button type="button" class="btn btn-sm btn-primary ms-2" id="btn-go-to-date">
+          <i class="fas fa-calendar-check"></i> Ir
+        </button>
+      </div>
+      <div class="btn-group mb-2">
+        <button type="button" class="btn btn-outline-primary" id="btn-today">
+          <i class="fas fa-calendar-day"></i> Hoje
+        </button>
+        <button type="button" class="btn btn-outline-primary" id="btn-next-month">
+          <i class="fas fa-angle-right"></i> Mês
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Inserir os controles de navegação antes do calendário
+  calendarEl.parentNode.insertBefore(calendarNavigation, calendarEl);
+
+  // Inicializar o calendário
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
     headerToolbar: {
-      left: "",
+      left: "today",
       center: "title",
-      right: "prev,next",
+      right: "prev,next dayGridMonth,listMonth",
     },
+    buttonText: {
+      today: 'Hoje',
+      month: 'Mês',
+      list: 'Lista'
+    },
+    locale: 'pt-br',
     height: "auto",
+    navLinks: true, // can click day/week names to navigate views
+    dayMaxEvents: true, // allow "more" link when too many events
+    showNonCurrentDates: true, // show dates from other months
+    fixedWeekCount: false, // don't always show 6 weeks
     events: function (info, successCallback, failureCallback) {
-      // Load events from API based on date range
-      apiRequest("/eventos")
+      // Calculate date range to include previous months
+      const startDate = new Date(info.start);
+
+      // Get events from the beginning of the year to include all past events
+      const currentYear = new Date().getFullYear();
+      const beginningOfYear = new Date(currentYear - 1, 0, 1); // January 1st of previous year
+
+      // Format dates for API
+      const formattedStartDate = beginningOfYear.toISOString().split('T')[0];
+      const formattedEndDate = info.end.toISOString().split('T')[0];
+
+      console.log(`Loading calendar events from ${formattedStartDate} to ${formattedEndDate}`);
+
+      // Load events from API with date range
+      apiRequest(`/eventos?dataInicial=${formattedStartDate}&dataFinal=${formattedEndDate}`)
         .then((eventos) => {
+          console.log(`Loaded ${eventos.length} events for calendar`);
+
           const calendarEvents = eventos.map((evento) => {
-            let color;
+            // Determine color based on status
+            let color, textColor = '#fff';
             if (evento.status === "PENDENTE") {
               color = "#ffc107"; // warning/yellow
             } else if (evento.status === "CONCLUIDO") {
@@ -331,15 +411,26 @@ function initCalendar() {
               color = "#dc3545"; // danger/red
             }
 
+            // Format title to include more information
+            const carroInfo = evento.carro ? `${evento.carro.modelo} (${evento.carro.placa})` : "Carro";
+            const motoristaInfo = evento.motorista ? evento.motorista.nome : "Motorista";
+
+            // Create event object
             return {
               id: evento.id,
-              title: `${evento.carro?.modelo || "Carro"} - ${
-                evento.motorista?.nome || "Motorista"
-              }`,
+              title: `${carroInfo} - ${motoristaInfo}`,
               start: evento.dataSaida,
               end: evento.dataEntrada || null,
               backgroundColor: color,
               borderColor: color,
+              textColor: textColor,
+              extendedProps: {
+                status: evento.status,
+                carroId: evento.carroId,
+                motoristaId: evento.motoristaId,
+                odometroInicial: evento.odometroInicial,
+                odometroFinal: evento.odometroFinal
+              }
             };
           });
 
@@ -354,9 +445,128 @@ function initCalendar() {
       // Show event details when an event is clicked
       viewEventDetails(info.event.id);
     },
+    eventDidMount: function(info) {
+      // Add tooltip with more information
+      const evento = info.event;
+      const status = evento.extendedProps.status;
+      const statusText = status === "PENDENTE" ? "Pendente" :
+                         status === "CONCLUIDO" ? "Concluído" : "Cancelado";
+
+      // Create tooltip content
+      const tooltipContent = `
+        <div class="calendar-tooltip">
+          <strong>${evento.title}</strong><br>
+          <span>Status: ${statusText}</span><br>
+          <span>Data: ${new Date(evento.start).toLocaleDateString('pt-BR')}</span>
+          ${evento.end ? `<br><span>Até: ${new Date(evento.end).toLocaleDateString('pt-BR')}</span>` : ''}
+        </div>
+      `;
+
+      // Initialize tooltip
+      new bootstrap.Tooltip(info.el, {
+        title: tooltipContent,
+        html: true,
+        placement: 'top',
+        customClass: 'calendar-event-tooltip'
+      });
+    },
+    datesSet: function(dateInfo) {
+      // Atualizar os seletores de mês e ano quando a data do calendário mudar
+      const currentDate = dateInfo.view.currentStart;
+      const monthSelector = document.getElementById('month-selector');
+      const yearSelector = document.getElementById('year-selector');
+
+      if (monthSelector && yearSelector) {
+        monthSelector.value = currentDate.getMonth();
+        yearSelector.value = currentDate.getFullYear();
+      }
+    }
   });
 
   calendar.render();
+
+  // Preencher o seletor de anos (do ano atual até 5 anos atrás)
+  const yearSelector = document.getElementById('year-selector');
+  if (yearSelector) {
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear; year >= currentYear - 5; year--) {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      yearSelector.appendChild(option);
+    }
+    yearSelector.value = currentYear;
+  }
+
+  // Definir o mês atual no seletor
+  const monthSelector = document.getElementById('month-selector');
+  if (monthSelector) {
+    monthSelector.value = new Date().getMonth();
+  }
+
+  // Adicionar event listeners para os botões de navegação
+  document.getElementById('btn-prev-year').addEventListener('click', function() {
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+  });
+
+  document.getElementById('btn-prev-3-months').addEventListener('click', function() {
+    calendar.prev();
+    calendar.prev();
+    calendar.prev();
+  });
+
+  document.getElementById('btn-prev-month').addEventListener('click', function() {
+    calendar.prev();
+  });
+
+  document.getElementById('btn-today').addEventListener('click', function() {
+    calendar.today();
+  });
+
+  document.getElementById('btn-next-month').addEventListener('click', function() {
+    calendar.next();
+  });
+
+  document.getElementById('btn-go-to-date').addEventListener('click', function() {
+    const year = parseInt(document.getElementById('year-selector').value);
+    const month = parseInt(document.getElementById('month-selector').value);
+    calendar.gotoDate(new Date(year, month, 1));
+  });
+
+  // Add CSS for calendar tooltips and navigation
+  const style = document.createElement('style');
+  style.textContent = `
+    .calendar-tooltip {
+      font-size: 12px;
+      padding: 4px;
+    }
+    .fc-event {
+      cursor: pointer;
+    }
+    .fc-list-event-title {
+      font-weight: bold;
+    }
+    .calendar-navigation {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Expor o objeto calendar para uso global
+  window.mainCalendar = calendar;
 }
 
 // CARROS TAB
@@ -377,12 +587,39 @@ function initCarrosTab() {
     .getElementById("btn-salvar-carro")
     .addEventListener("click", saveCarro);
 
+  // Add validation to license plate field
+  const placaInput = document.getElementById("carro-placa");
+  if (placaInput) {
+    placaInput.addEventListener('input', function() {
+      // Convert to uppercase
+      this.value = this.value.toUpperCase();
+
+      // Validate format
+      if (this.value && !validarPlaca(this.value)) {
+        this.setCustomValidity("Formato de placa inválido! Use ABC1234 (padrão antigo) ou ABC1D23 (padrão Mercosul)");
+        this.classList.add("is-invalid");
+      } else {
+        this.setCustomValidity("");
+        this.classList.remove("is-invalid");
+      }
+    });
+  }
+
   // Reset form when modal is closed
   document
     .getElementById("modalAddCarro")
     .addEventListener("hidden.bs.modal", () => {
       document.getElementById("formAddCarro").reset();
     });
+}
+
+// Function to validate license plate format
+function validarPlaca(placa) {
+  // Brazilian standard format: ABC1234 or ABC1D23 (Mercosul)
+  const placaRegexAntiga = /^[A-Z]{3}[0-9]{4}$/;
+  const placaRegexMercosul = /^[A-Z]{3}[0-9]{1}[A-Z]{1}[0-9]{2}$/;
+
+  return placaRegexAntiga.test(placa) || placaRegexMercosul.test(placa);
 }
 
 async function loadCarros() {
@@ -469,6 +706,18 @@ async function saveCarro() {
   const odometroAtual = document.getElementById("carro-odometro").value;
   const disponivel = document.getElementById("carro-disponivel").checked;
 
+  // Validate license plate before submitting
+  if (!validarPlaca(placa)) {
+    showAlert("Formato de placa inválido! Use ABC1234 (padrão antigo) ou ABC1D23 (padrão Mercosul)", "danger");
+    return;
+  }
+
+  // Validate odometer value is not negative
+  if (parseInt(odometroAtual) < 0) {
+    showAlert("O valor do odômetro não pode ser negativo.", "danger");
+    return;
+  }
+
   // Get gestor ID from token (you may need to decode JWT or get from localStorage)
   const gestorId = localStorage.getItem("gestorId");
 
@@ -478,7 +727,7 @@ async function saveCarro() {
       marca,
       ano: parseInt(ano),
       cor,
-      placa,
+      placa: placa.toUpperCase(), // Ensure plate is uppercase
       odometroAtual: parseInt(odometroAtual),
       disponivel,
       gestorId,
@@ -537,13 +786,25 @@ async function updateCarro(id) {
   const odometroAtual = document.getElementById("carro-odometro").value;
   const disponivel = document.getElementById("carro-disponivel").checked;
 
+  // Validate license plate before submitting
+  if (!validarPlaca(placa)) {
+    showAlert("Formato de placa inválido! Use ABC1234 (padrão antigo) ou ABC1D23 (padrão Mercosul)", "danger");
+    return;
+  }
+
+  // Validate odometer value is not negative
+  if (parseInt(odometroAtual) < 0) {
+    showAlert("O valor do odômetro não pode ser negativo.", "danger");
+    return;
+  }
+
   try {
     await apiRequest(`/carro/${id}`, "PUT", {
       modelo,
       marca,
       ano: parseInt(ano),
       cor,
-      placa,
+      placa: placa.toUpperCase(), // Ensure plate is uppercase
       odometroAtual: parseInt(odometroAtual),
       disponivel,
     });
@@ -1039,8 +1300,17 @@ function renderEventosList(eventos) {
                 <button class="btn btn-sm btn-success btn-action conclude-evento" data-id="${evento.id}">
                     <i class="fas fa-check"></i>
                 </button>
+                <button class="btn btn-sm btn-warning btn-action cancel-evento" data-id="${evento.id}">
+                    <i class="fas fa-ban"></i>
+                </button>
                 <button class="btn btn-sm btn-danger btn-action delete-evento" data-id="${evento.id}">
                     <i class="fas fa-trash"></i>
+                </button>
+            `;
+    } else if (evento.status === "CONCLUIDO") {
+      actions += `
+                <button class="btn btn-sm btn-warning btn-action cancel-evento" data-id="${evento.id}">
+                    <i class="fas fa-ban"></i>
                 </button>
             `;
     }
@@ -1075,6 +1345,13 @@ function addEventoButtonListeners() {
     button.addEventListener("click", () => {
       const id = button.getAttribute("data-id");
       openConcludeEventModal(id);
+    });
+  });
+
+  document.querySelectorAll(".cancel-evento").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.getAttribute("data-id");
+      cancelEvento(id);
     });
   });
 
@@ -1230,6 +1507,19 @@ async function concludeEvento() {
     return;
   }
 
+  // Validate odometer value is not negative
+  if (parseInt(odometroFinal) < 0) {
+    showAlert("O valor do odômetro não pode ser negativo.", "danger");
+    return;
+  }
+
+  // Get initial odometer value for comparison
+  const odometroInicial = parseInt(document.getElementById("concluir-evento-odometro-inicial").value);
+  if (parseInt(odometroFinal) < odometroInicial) {
+    showAlert("O odômetro final não pode ser menor que o odômetro inicial.", "danger");
+    return;
+  }
+
   try {
     await apiRequest("/evento", "PUT", {
       eventoId,
@@ -1276,6 +1566,48 @@ async function deleteEvento(id) {
   }
 }
 
+async function cancelEvento(id) {
+  if (!confirm("Tem certeza que deseja cancelar este evento?")) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/evento/${id}/cancelar`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        motivoCancelamento: "Cancelado pelo usuário"
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Check if the error is due to trying to cancel a completed event
+      if (data.error && data.error.includes("Não é possível cancelar um evento que já foi concluído")) {
+        showAlert("Não é possível cancelar um evento que já foi concluído conforme regra de negócio.", "danger");
+        return;
+      }
+      throw new Error(data.error || "Erro ao cancelar evento");
+    }
+
+    showAlert("Evento cancelado com sucesso!", "success");
+    loadEventos();
+
+    // Reload dashboard and combos
+    initDashboard();
+    loadCombos();
+
+    // Update calendar
+    initCalendar();
+  } catch (error) {
+    showAlert("Erro ao cancelar evento: " + error.message, "danger");
+  }
+}
+
 function showAlert(message, type = "success") {
   const alertContainer = document.getElementById("alert-container");
   if (!alertContainer) {
@@ -1300,3 +1632,286 @@ function showAlert(message, type = "success") {
 }
 
 console.log("Initializing dashboard...");
+
+// Function to view event details when clicked from calendar or elsewhere
+async function viewEventDetails(id) {
+  try {
+    // Get event details from API
+    const evento = await apiRequest(`/evento/${id}`);
+
+    // Create modal HTML
+    const modalHTML = `
+      <div class="modal fade" id="viewEventModal" tabindex="-1" aria-labelledby="viewEventModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="viewEventModalLabel">
+                <i class="fas fa-calendar-day me-2"></i>
+                Detalhes do Evento
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                      <i class="fas fa-car me-2"></i>
+                      Informações do Veículo
+                    </div>
+                    <div class="card-body">
+                      <p><strong>Veículo:</strong> ${evento.carro?.modelo || 'N/A'} (${evento.carro?.placa || 'N/A'})</p>
+                      <p><strong>Marca:</strong> ${evento.carro?.marca || 'N/A'}</p>
+                      <p><strong>Cor:</strong> ${evento.carro?.cor || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                      <i class="fas fa-user me-2"></i>
+                      Informações do Motorista
+                    </div>
+                    <div class="card-body">
+                      <p><strong>Nome:</strong> ${evento.motorista?.nome || 'N/A'}</p>
+                      <p><strong>CPF:</strong> ${evento.motorista?.cpf || 'N/A'}</p>
+                      <p><strong>Telefone:</strong> ${evento.motorista?.telefone || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Detalhes do Evento
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p><strong>ID:</strong> ${evento.id || 'N/A'}</p>
+                      <p><strong>Status:</strong>
+                        <span class="badge ${evento.status === 'PENDENTE' ? 'bg-warning' :
+                                            evento.status === 'CONCLUIDO' ? 'bg-success' :
+                                            'bg-danger'}">
+                          ${evento.status === 'PENDENTE' ? 'Pendente' :
+                            evento.status === 'CONCLUIDO' ? 'Concluído' :
+                            'Cancelado'}
+                        </span>
+                      </p>
+                      <p><strong>Data de Saída:</strong> ${evento.dataSaida ? new Date(evento.dataSaida).toLocaleString('pt-BR') : 'N/A'}</p>
+                      <p><strong>Data de Entrada:</strong> ${evento.dataEntrada ? new Date(evento.dataEntrada).toLocaleString('pt-BR') : 'N/A'}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p><strong>Odômetro Inicial:</strong> ${evento.odometroInicial ? evento.odometroInicial.toLocaleString('pt-BR') + ' km' : 'N/A'}</p>
+                      <p><strong>Odômetro Final:</strong> ${evento.odometroFinal ? evento.odometroFinal.toLocaleString('pt-BR') + ' km' : 'N/A'}</p>
+                      ${evento.odometroInicial && evento.odometroFinal ?
+                        `<p><strong>Distância Percorrida:</strong> ${(evento.odometroFinal - evento.odometroInicial).toLocaleString('pt-BR')} km</p>` : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              ${evento.pagamentos && evento.pagamentos.length > 0 ? `
+              <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                  <i class="fas fa-money-bill-wave me-2"></i>
+                  Informações de Pagamento
+                </div>
+                <div class="card-body">
+                  <p><strong>Valor:</strong> R$ ${evento.pagamentos[0].valor.toFixed(2)}</p>
+                  <p><strong>Método:</strong> ${evento.pagamentos[0].metodoPagamento}</p>
+                  <p><strong>Status:</strong>
+                    <span class="badge ${evento.pagamentos[0].statusPagamento === 'PAGO' ? 'bg-success' :
+                                        evento.pagamentos[0].statusPagamento === 'PENDENTE' ? 'bg-warning' :
+                                        'bg-danger'}">
+                      ${evento.pagamentos[0].statusPagamento}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              ` : ''}
+            </div>
+            <div class="modal-footer">
+              ${evento.status === 'PENDENTE' ? `
+                <button type="button" class="btn btn-success" id="btn-concluir-evento-modal" data-id="${evento.id}">
+                  <i class="fas fa-check me-2"></i>Concluir Evento
+                </button>
+                <button type="button" class="btn btn-warning" id="btn-cancelar-evento-modal" data-id="${evento.id}">
+                  <i class="fas fa-ban me-2"></i>Cancelar Evento
+                </button>
+              ` : evento.status === 'CONCLUIDO' ? `
+                <button type="button" class="btn btn-warning" id="btn-cancelar-evento-modal" data-id="${evento.id}">
+                  <i class="fas fa-ban me-2"></i>Cancelar Evento
+                </button>
+              ` : ''}
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById('viewEventModal');
+    if (existingModal) {
+      const modalInstance = bootstrap.Modal.getInstance(existingModal);
+      if (modalInstance) {
+        modalInstance.hide();
+      }
+      existingModal.remove();
+    }
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Show modal
+    const modalElement = document.getElementById('viewEventModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // Add event listeners for action buttons
+    const btnConcluir = document.getElementById('btn-concluir-evento-modal');
+    if (btnConcluir) {
+      btnConcluir.addEventListener('click', () => {
+        modal.hide();
+        openConcludeEventModal(evento.id);
+      });
+    }
+
+    const btnCancelar = document.getElementById('btn-cancelar-evento-modal');
+    if (btnCancelar) {
+      btnCancelar.addEventListener('click', () => {
+        if (confirm('Tem certeza que deseja cancelar este evento?')) {
+          modal.hide();
+          cancelEvento(evento.id);
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error("Error loading event details:", error);
+    showAlert("Erro ao carregar detalhes do evento: " + error.message, "danger");
+  }
+}
+
+// Function to open the create event modal with a pre-selected car
+function openCreateEventModal(carId) {
+  // Pre-select the car in the dropdown
+  const carSelect = document.getElementById("evento-carro");
+  if (carSelect) {
+    carSelect.value = carId;
+
+    // Trigger the change event to load the car's odometer value
+    const changeEvent = new Event('change');
+    carSelect.dispatchEvent(changeEvent);
+  }
+
+  // Open the modal
+  const modal = new bootstrap.Modal(document.getElementById("modalAddEvento"));
+  modal.show();
+}
+
+// Function to view driver details
+async function viewDriverDetails(id) {
+  try {
+    // Get driver details from API
+    const motorista = await apiRequest(`/motorista/${id}`);
+
+    // Create modal HTML
+    const modalHTML = `
+      <div class="modal fade" id="viewDriverModal" tabindex="-1" aria-labelledby="viewDriverModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="viewDriverModalLabel">
+                <i class="fas fa-user me-2"></i>
+                Detalhes do Motorista
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="avatar-circle bg-primary text-white me-3">
+                      <i class="fas fa-user fa-2x"></i>
+                    </div>
+                    <div>
+                      <h5 class="mb-0">${motorista.nome || 'N/A'}</h5>
+                      <p class="text-muted mb-0">ID: ${motorista.id || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <hr>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p><strong>CPF:</strong> ${motorista.cpf || 'N/A'}</p>
+                      <p><strong>Telefone:</strong> ${motorista.telefone || 'N/A'}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p><strong>Habilitação:</strong> ${motorista.habilitacao || 'N/A'}</p>
+                      <p>
+                        <strong>Status:</strong>
+                        <span class="badge ${motorista.disponivel ? 'bg-success' : 'bg-danger'}">
+                          ${motorista.disponivel ? 'Disponível' : 'Indisponível'}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-grid gap-2">
+                <a href="../motorista/DetalheMotorista.html?id=${motorista.id}" class="btn btn-primary">
+                  <i class="fas fa-list me-2"></i>
+                  Ver Histórico Completo
+                </a>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById('viewDriverModal');
+    if (existingModal) {
+      const modalInstance = bootstrap.Modal.getInstance(existingModal);
+      if (modalInstance) {
+        modalInstance.hide();
+      }
+      existingModal.remove();
+    }
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Add CSS for avatar circle
+    const style = document.createElement('style');
+    style.textContent = `
+      .avatar-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Show modal
+    const modalElement = document.getElementById('viewDriverModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+  } catch (error) {
+    console.error("Error loading driver details:", error);
+    showAlert("Erro ao carregar detalhes do motorista: " + error.message, "danger");
+  }
+}
