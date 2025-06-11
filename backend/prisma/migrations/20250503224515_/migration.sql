@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `relatorio` MODIFY `tipo` ENUM('FINANCEIRO', 'MOTORISTA', 'CARRO') NOT NULL;
