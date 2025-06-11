@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Gestor {
+  id         String      @id @default(uuid())
+  admin      Boolean     @default(false)
+  nome       String
+  cpf        String      @unique
+  email      String      @unique
+  senha   String
+  motoristas Motorista[] // Um gestor pode gerenciar vários motoristas
+  carros     Carro[] // Um gestor pode gerenciar vários carros
+  eventos    Evento[] // O gestor pode registrar vários eventos
+  pagamentos Pagamento[] // O gestor pode gerenciar pagamentos
+  relatorios Relatorio[] // O gestor pode gerar relatórios
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Motorista {
+  id          String   @id @default(uuid())
+  nome        String
+  telefone    String?
+  cpf         String   @unique
+  habilitacao String   @unique
+  disponivel  Boolean  @default(true) // Se o motorista está disponível ou não
+  gestor      Gestor   @relation(fields: [gestorId], references: [id])
+  gestorId    String
+  eventos     Evento[] // Um motorista pode estar associado a vários eventos
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  relatorios Relatorio[] @relation("MotoristaRelatorios")
+
+}
+
+model Carro {
+  id            String      @id @default(uuid())
+  modelo        String
+  marca         String
+  ano           Int
+  cor           String
+  placa         String      @unique
+  odometroAtual Int
+  disponivel    Boolean     @default(true)
+  gestor        Gestor      @relation(fields: [gestorId], references: [id])
+  gestorId      String
+  eventos       Evento[]
+  relatorios    Relatorio[] @relation("CarroRelatorios")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Evento {
+  id              String       @id @default(uuid())
+  tipoEvento      TipoEvento
+  status          StatusEvento
+  dataSaida       DateTime     @default(now())
+  dataEntrada     DateTime?
+  odometroInicial Int
+  odometroFinal   Int?
+  pagamentos      Pagamento[]
+  carro           Carro        @relation(fields: [carroId], references: [id])
+  carroId         String
+  gestor          Gestor       @relation(fields: [gestorId], references: [id])
+  gestorId        String
+  motorista       Motorista    @relation(fields: [motoristaId], references: [id])
+  motoristaId     String
+  relatorio       Relatorio?   @relation(fields: [relatorioId], references: [id])
+  relatorioId     String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+
+model Relatorio {
+  id        String   @id @default(uuid())
+  tipo      String
+  filtros   Json      @default("{}")
+  gestor    Gestor   @relation(fields: [gestorId], references: [id], map: "Relatorio_gestorId_fkey")
+  gestorId  String
+  createdAt DateTime @default(now())
+
+  evento Evento[]
+
+  pagamento Pagamento[]
+
+  carro Carro[] @relation("CarroRelatorios")
+
+  motoristas Motorista[] @relation("MotoristaRelatorios")
+}
+
+model Pagamento {
+  id              String          @id @default(uuid())
+  valor           Float
+  data            DateTime
+  metodoPagamento MetodoPagamento @default(Pagamento_Indefinido)
+  statusPagamento StatusPagamento @default(PENDENTE)
+  gestor          Gestor          @relation(fields: [gestorId], references: [id])
+  gestorId        String
+  evento          Evento          @relation(fields: [eventoId], references: [id])
+  eventoId        String
+  relatorio       Relatorio?      @relation(fields: [relatorioId], references: [id])
+  relatorioId     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+enum TipoEvento {
+  SAIDA
+  ENTRADA
+}
+
+enum StatusEvento {
+  PENDENTE
+  CONCLUIDO
+  CANCELADO
+}
+
+enum StatusPagamento {
+  PENDENTE
+  PAGO
+  CANCELADO
+}
+
+enum MetodoPagamento {
+  Pagamento_Indefinido
+  CARTAO
+  PIX
+  DINHEIRO
+  BOLETO
+}
+
+enum RelatorioTipo {
+  FINANCEIRO
+  MOTORISTA
+  CARRO
+}
